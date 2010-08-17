@@ -41,12 +41,12 @@ $issue_html
 require_once 'REST/Server.php';
 $server = new REST_Server();
 $server->root()
-    ->append($projects)
-    ->append($project)
-    ->createLevel()
-        ->append($issues)
-        ->append($issue_xml)
-        ->append($issue_html);
+    ->append($projects)              # /index.xml
+    ->append($project)               # /{project}.xml
+    ->createLevel()                  # 
+        ->append($issues)            # /{project}/index.xml
+        ->append($issue_xml)         # /{project}/{issue}.xml
+        ->append($issue_html);       # /{project}/{issue}.html
 $server->handle();
 
 // Save datas
