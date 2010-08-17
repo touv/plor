@@ -1,0 +1,63 @@
+# Options Générales
+# Bug apache ...
+Options +Indexes FollowSymLinks SymLinksIfOwnerMatch
+IndexOptions FancyIndexing IconsAreLinks
+FileETag none
+
+# Règles pour configurer PHP
+<IfModule mod_php5.c>
+	php_flag asp_tags On
+	php_flag zlib.output_compression On
+	php_value zlib.output_compression_level 5
+	php_value session.use_trans_sid 0
+	php_value session.use_only_cookies 1
+	php_value session.gc_probability 1
+	# php_value session.save_path /dev/shm/refdoc
+	php_value memory_limit 128M
+</IfModule>
+
+# Règles pour le cache du navigateur
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresDefault "access plus 1 seconds"
+	ExpiresByType text/html "access plus 1 seconds"
+	ExpiresByType image/gif "access plus 1 month"
+	ExpiresByType image/jpeg "access plus 1 month"
+	ExpiresByType image/png "access plus 1 month"
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType text/javascript "access plus 1 month"
+	ExpiresByType image/x-icon "access plus 1 month"
+	ExpiresByType application/javascript "access plus 1 month"
+	ExpiresByType application/x-javascript "access plus 1 month"
+	ExpiresByType text/xml "access plus 1 seconds"
+</IfModule>
+
+# Règles pour compresser les flux réseaux
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/css text/js text/javascript application/x-javascript
+	BrowserMatch ^Mozilla/4 gzip-only-text/html
+	BrowserMatch ^Mozilla/4\.0[678] no-gzip
+	BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+
+	<Files *.js>
+		SetOutputFilter DEFLATE
+	</Files>
+	<Files *.css>
+		SetOutputFilter DEFLATE
+	</Files>
+</IfModule>
+
+# Règles de réécriture
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+    RewriteCond %{REQUEST_URI} !=/server-status
+    RewriteCond %{REQUEST_URI} !=/server-info
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule . index.php [L]
+</IfModule>
+
+<Files data.txt>
+    Order deny,allow
+    Deny from all
+</Files>
