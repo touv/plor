@@ -12,9 +12,9 @@
 		<email>nthouvenin@gmail.com</email>
 		<active>yes</active>
 	</lead>
-	<date>2010-06-10</date>
+	<date>2010-08-17</date>
 	<version>
-		<release>1.0.0</release>
+		<release>1.0.1</release>
 		<api>1.0</api>
 	</version>
 	<stability>
@@ -23,7 +23,7 @@
 	</stability>
 	<license uri="http://opensource.org/licenses/bsd-license.php">BSD Licence</license>
 	<notes>
-        first release
+        ajout 3 ième paramètre
 	</notes>
 	<contents>
 		<dir name="/">
