@@ -15,6 +15,7 @@ all :
 #	$(PHPUNIT) Text_NormalizeTest Text/NormalizeTest.php
 
 push:
+	git push
 	git push --tags
 
 release: REST_Server-`./extract-version.sh`.tgz

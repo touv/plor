@@ -116,11 +116,11 @@ abstract class REST_Resource
     public function addAction($method, $callback, $parameters = array(), $attribut = null)
     {
         if (!preg_match("/[A-Z]+/", $method))
-            return trigger_error(sprintf('%s::addAction() expects parameter 0 to be string that only contains letters in uppercase', __CLASS__), E_USER_ERROR);
+            return trigger_error(sprintf('%s::addAction() expects parameter 0 to be string that only contains letters in uppercase. %s[%s]', __CLASS__, $method, $this), E_USER_ERROR);
         if (!is_callable($callback))
-            return trigger_error(sprintf('%s::addAction() expects parameter 1 to be callable', __CLASS__), E_USER_ERROR);
+            return trigger_error(sprintf('%s::addAction() expects parameter 1 to be callable. %s[%s]', __CLASS__, $method, $this), E_USER_ERROR);
         if (!is_array($parameters))
-            return trigger_error(sprintf('%s::addAction() expects parameter 2 to be array, %s given', __CLASS__, gettype($parameters)), E_USER_ERROR);
+            return trigger_error(sprintf('%s::addAction() expects parameter 2 to be array, %s given. %s[%s]', __CLASS__, gettype($parameters), $method, $this), E_USER_ERROR);
 
         $this->action[strtoupper($method)] = array(
             'callback'   => $callback,
@@ -143,7 +143,8 @@ abstract class REST_Resource
         return (boolean) call_user_func(
             $this->action[$method]['callback'], 
             new REST_Parameters($sections, $this->action[$method]['parameters']),
-            $headers
+            $headers,
+            $this->action[$method]['attribut']
         );
     }
 
@@ -214,6 +215,17 @@ abstract class REST_Resource
         foreach($this->headers as $k => $v)
             $h->add($k, $v);
         return true;
+    }
+
+
+    /**
+     * __tostring
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (!is_null($this->namespace) ? '::'.$this->namespace : '').' .'.$this->extension.' '.$this->mimetype;
     }
 
     abstract public function match(REST_Section $section);

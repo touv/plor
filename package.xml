@@ -12,7 +12,7 @@
 		<email>nthouvenin@gmail.com</email>
 		<active>yes</active>
 	</lead>
-	<date>2010-05-08</date>
+	<date>2010-06-10</date>
 	<version>
 		<release>1.0.0</release>
 		<api>1.0</api>
@@ -28,8 +28,17 @@
 	<contents>
 		<dir name="/">
 			<dir name="REST">
-				<file name="Client.php" role="php" />
-				<file name="Response.php" role="php" />
+				<file name="Mime.php" role="php" />
+				<file name="Section.php" role="php" />
+				<dir name="Resource">
+					<file name="Leaf.php" role="php" />
+					<file name="Index.php" role="php" />
+				</dir>
+				<file name="Resource.php" role="php" />
+				<file name="Server.php" role="php" />
+				<file name="Parameters.php" role="php" />
+				<file name="Headers.php" role="php" />
+				<file name="Level.php" role="php" />
 			</dir>
 		</dir>
 	</contents>
