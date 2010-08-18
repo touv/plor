@@ -58,7 +58,7 @@ class REST_Resource_Index extends REST_Resource
     {
         if ($section->isIndex()) {
             if ($section->getExtension() === 'default') return true;
-            elseif (strcasecmp($section->getExtension(), $this->extension)) 
+            elseif (strcasecmp($section->getExtension(), $this->extension) === 0) 
                 return true;
             else
                 return false;
