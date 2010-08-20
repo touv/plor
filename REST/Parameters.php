@@ -73,18 +73,15 @@ class REST_Parameters
 
     /**
      * getSection
-     * @param integer
+     * @param Section 
      */
     public function section($i = null)
     {
-        $m = count($this->sections) - 1;
-
-        if (is_null($i)) $i = $m;
+        if (is_null($i)) $i = count($this->sections) - 1;
         settype($i, 'integer');
         if ($i < 0) $i = 0;
-        if ($i > $m) $i = $m;
 
-        return $this->sections[$i];
+        return isset($this->sections[$i]) ?  $this->sections[$i] : null;
     }
 
     /**
