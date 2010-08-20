@@ -57,10 +57,12 @@ class REST_Server
         'error_reporting'   => E_ALL,
         'implicit_flush'    => true,
         'powered_by'        => 'REST_Server/1.0-php',
+        'compatible'        => false,
     );
     protected $root;
     protected $sections;
     protected $format;
+    protected $method;
 
     /**
      * Constructor
@@ -69,7 +71,7 @@ class REST_Server
      */
     function __construct($rfs = null, $options = array())
     {
-        $this->options += $options;
+        $this->options = array_merge($this->options, $options);
 
         ignore_user_abort($this->options['ignore_user_abort']);
         set_time_limit($this->options['time_limit']);
@@ -84,6 +86,10 @@ class REST_Server
             $this->format = $sec->getExtension();
             $this->sections[] = $sec;
         }
+
+        $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
+        if ($this->options['compatible'] and isset($_GET['_']))
+            $this->method = strtoupper($_GET['_']);
     }
 
     /**
@@ -119,18 +125,18 @@ class REST_Server
 
         $headers = new REST_Headers($this->options['powered_by']);
         if (is_null($found)) 
-            return $headers->send(404);
+            return $headers->send(404, true);
 
-        if (!$found->existsAction(self::method()))
-            return $headers->send(405);
+        if (!$found->existsAction($this->method))
+            return $headers->send(405, true);
 
         if (!$found->setHeaders($headers))
-            return $headers->send(500);
+            return $headers->send(500, true);
 
-        $found->execAction(self::method(), $headers, $this->sections);
+        $found->execAction($this->method, $headers, $this->sections);
 
         if (!$headers->getStatus())
-            return $headers->send(500);
+            return $headers->send(500, true);
 
         return $headers->getStatus();
     }
@@ -180,18 +186,6 @@ class REST_Server
         $uriAll = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
         $path = false !== ($q = strpos($uriAll, '?')) ? substr($uriAll, 0, $q) : $uriAll;
         return $path;
-    }
-
-    /**
-     * Get method of the server
-     * @return string
-     */
-    static public function method()
-    {
-        static $method;
-        if (!is_null($method)) return $method;
-        $method = strtoupper($_SERVER['REQUEST_METHOD']);
-        return $method;
     }
 
 }
