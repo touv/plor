@@ -37,10 +37,9 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'REST/Resource.php';
 
 /**
- * A REST Resource 
+ * access to http infos
  *
  * @category  REST
  * @package   REST_Server
@@ -48,22 +47,89 @@ require_once 'REST/Resource.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Resource_Leaf extends REST_Resource
+class REST_Input
 {
-    /**
-     * match with section ?
-     *
-     * @param REST_Section
-     */
-    public function match(REST_Section $section)
+    public function __construct()
     {
-        if (!$section->isIndex()) {
-            if (strcasecmp($section->getExtension(), $this->extension) === 0) 
-                return true;
-            else
-                return false;
-        }
-        else 
-            return false;
     }
+
+    /**
+     * Get method of the server
+     * @return string
+     */
+    public function method()
+    {
+        static $method;
+        if (!is_null($method)) return $method;
+        $method = strtoupper($_SERVER['REQUEST_METHOD']);
+
+        return $method;
+    }
+
+    /**
+     * Get host of the server
+     * @return string
+     */
+    public function host()
+    {
+        static $host;
+        if (!is_null($host)) return $host;
+
+        if (isset($_SERVER['HTTP_HOST'])) {
+            $host = 'http'.
+                (!isset($_SERVER['HTTPS'])||strtolower($_SERVER['HTTPS'])!= 'on'?'':'s').
+                '://'.
+                (isset($_SERVER["HTTP_X_FORWARDED_HOST"]) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : $_SERVER['HTTP_HOST']);
+        } else {
+            $host = '';
+        }
+        $host = rtrim($host, '/');
+        return $host;
+    }
+
+    /**
+     * Get uri of the server
+     * @return string
+     */
+    public function uri()
+    {
+        static $uri;
+        if (!is_null($uri)) return $uri;
+        $uri = $this->host().$this->fullpath();
+        return $uri;
+    }
+
+    /**
+     * Get full path of the server (including base)
+     * @return string
+     */
+    public function fullpath()
+    {
+        static $fullpath;
+        if (!is_null($fullpath)) return $fullpath;
+
+        if (!empty($_SERVER['REQUEST_BASE']))
+            $fullpath = $_SERVER['REQUEST_BASE'].$this->path();
+        else 
+            $fullpath = $this->path();
+        return $fullpath;
+    }
+
+
+    /**
+     * Get path of the server
+     * @return string
+     */
+    public function path()
+    {
+        static $path;
+        if (!is_null($path)) return $path;
+
+        $uriAll = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
+        $path = false !== ($q = strpos($uriAll, '?')) ? substr($uriAll, 0, $q) : $uriAll;
+        if (!empty($_SERVER['REQUEST_BASE']))
+            $path = preg_replace('/^'.preg_quote($_SERVER['REQUEST_BASE'], '/').'/',  '', $path);
+        return $path;
+    }
+
 }
