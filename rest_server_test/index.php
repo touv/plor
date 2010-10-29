@@ -36,7 +36,7 @@ REST_Url::registerSplitter('id',
 // Define Resources
 require_once 'REST/Url.php';
 $projects = REST_Url::factory('/{index}.xml')
-    ->addConstant('uid', 'project')
+    ->addConstant('test', 'all callbacks can access to this content through the REST_Parameter class') 
     ->bindMethod('GET', 'list_of_projects_in_xml')
     ->bindMethod('POST', 'add_new_project', array('name'));
 
@@ -46,7 +46,7 @@ $project = REST_Url::factory('/{id}.xml')
 
 $issues = REST_Url::factory('/{id}/{index}.xml')
     ->bindMethod('GET', 'list_of_issues_in_xml')
-    ->bindMethod('POST', 'add_new_issue', array('description'));
+    ->bindMethod('POST', 'add_new_issue', array(array('description', 'd', 'desc')));
 
 $issue = REST_Url::factory('/{id}/{id}.(xml|html)')
     ->bindMethod('GET', 'get_issue')
