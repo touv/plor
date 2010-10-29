@@ -73,6 +73,38 @@ class REST_Parameters
         $this->parameters['__method'] = array('__method');
     }
 
+   /**
+     * getter
+     * 
+     * @param string
+     * @return mixed
+     */
+    public function get($name) 
+    {
+        if (isset($this->parameters[$name]))
+            foreach($this->parameters[$name] as $p) 
+                if (is_string($p) and isset($_REQUEST[$p])) return $_REQUEST[$p];
+        return null;
+    }
+
+     /**
+      * setter
+      *
+     * @param string
+     * @param mixed
+     */
+    public function set($name, $value) 
+    {
+        if (isset($this->parameters[$name])) {
+            $_REQUEST[$this->parameters[$name][0]] = $value;
+        }
+        else {
+            $this->parameters[$name] = array($name);
+             $_REQUEST[$name] = $value;
+        }
+    }
+
+
     /**
      * __get
      * 
@@ -82,10 +114,7 @@ class REST_Parameters
      */
     public function __get($name) 
     {
-        if (isset($this->parameters[$name]))
-            foreach($this->parameters[$name] as $p) 
-                if (is_string($p) and isset($_REQUEST[$p])) return $_REQUEST[$p];
-        return null;
+        return $this->get($name);
     }
 
      /**
@@ -98,13 +127,7 @@ class REST_Parameters
      */
     public function __set($name, $value) 
     {
-        if (isset($this->parameters[$name])) {
-            $_REQUEST[$this->parameters[$name][0]] = $value;
-        }
-        else {
-            $this->parameters[$name] = array($name);
-             $_REQUEST[$name] = $value;
-        }
+        return $this->set($name, $value);
     }
 
      /**
@@ -131,22 +154,4 @@ class REST_Parameters
     {
         unset($this->parameters[$name]);
     }
-
-     /**
-     * __call
-     *
-     * Magic function
-     *
-     * @param string
-     */
-     public function __call($name, $arguments) 
-     {
-         if (isset($this->parameters[$name]))
-             foreach($this->parameters[$name] as $p) 
-                 if (is_string($p) 
-                     and isset($_REQUEST[$p]) 
-                     and !is_null($_REQUEST[$p])
-                     and $_REQUEST[$p] !== '') return $_REQUEST[$p];
-         return current($arguments);
-     }
 }

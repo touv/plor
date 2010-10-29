@@ -55,6 +55,7 @@ class REST_Url
     protected $rules;
     protected $callbacks = array();
     protected $sections = array();
+    protected $constants = array();
     protected $input = null;
 
     public function __construct($tpl)
@@ -119,6 +120,22 @@ class REST_Url
     }
 
     /**
+     * Add a parameter like a constant
+     * @param string
+     * @param mixed
+     * @return REST_Url
+     */
+    public function addConstant($name, $value)
+    {
+        if (preg_match(',^\w+$,', $name)) {
+            $this->constants[$name] = $value;
+        }
+        return $this;
+    }
+
+
+
+    /**
      * Check if url match with the current context
      *
      * @return boolean
@@ -168,7 +185,11 @@ class REST_Url
             foreach($this->callbacks as $binding) {
                 if ($binding[0] === $method or $binding[0] === '*') {
                     $ret = true;
-                    call_user_func($binding[1], new REST_Parameters($this->sections, $binding[2], $this->input), $headers);
+                    $params = new REST_Parameters($this->sections, $binding[2], $this->input);
+                    foreach($this->constants as $constant => $value) {
+                        $params->set($constant, $value);
+                    }
+                    call_user_func($binding[1], $params, $headers);
                 }
             }
         }

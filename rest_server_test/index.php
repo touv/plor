@@ -36,6 +36,7 @@ REST_Url::registerSplitter('id',
 // Define Resources
 require_once 'REST/Url.php';
 $projects = REST_Url::factory('/{index}.xml')
+    ->addConstant('uid', 'project')
     ->bindMethod('GET', 'list_of_projects_in_xml')
     ->bindMethod('POST', 'add_new_project', array('name'));
 
