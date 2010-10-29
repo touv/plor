@@ -55,12 +55,11 @@ class REST_Url
     protected $rules;
     protected $callbacks = array();
     protected $sections = array();
-
     protected $input = null;
 
     public function __construct($tpl)
     {
-        $this->rules = $this->compile($tpl);
+        $this->rules = self::compile($tpl);
 
     }
 
@@ -79,6 +78,11 @@ class REST_Url
     }
 
     /**
+     * Register a template splitter
+     * @params string
+     * @params callbacks
+     * @static
+     * @return boolean
      */
     public static function registerSplitter($name, $callback)
     {
@@ -89,9 +93,9 @@ class REST_Url
         return false;
     }
 
-
     /**
      * REST_Url factory
+     * @param string
      * @return REST_Url
      */
     public static function factory($tpl)
@@ -99,16 +103,13 @@ class REST_Url
         return new REST_Url($tpl);
     }
 
-    public function bind($classname, $callback, $params = array())
-    {
-        if (is_callable($callback) and is_array($params)) {
-            $this->callbacks[] = array($method, $callback, $params);
-        }
-        return $this;
-    }
-
-
-
+    /**
+     * Link method with a callback
+     * @param string
+     * @param callback
+     * @param array
+     * @return REST_Url
+     */
     public function bindMethod($method, $callback, $params = array())
     {
         if (is_callable($callback) and is_array($params)) {
@@ -165,7 +166,7 @@ class REST_Url
         $method = $this->input->method();
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
-                if ($binding[0] === $method) {
+                if ($binding[0] === $method or $binding[0] === '*') {
                     $ret = true;
                     call_user_func($binding[1], new REST_Parameters($this->sections, $binding[2], $this->input), $headers);
                 }
@@ -174,7 +175,13 @@ class REST_Url
         return $ret;
     }
 
-    protected function compile($str)
+    /**
+     * Transform template in sections
+     *
+     * @param string
+     * @return array
+     */
+    protected static function compile($str)
     {
         $rules = array();
         $index = 0;
