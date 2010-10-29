@@ -11,8 +11,8 @@ all :
 	@echo "make push"
 
 
-#test :
-#	$(PHPUNIT) Text_NormalizeTest Text/NormalizeTest.php
+test :
+	$(PHPUNIT) REST_ServerTest REST/ServerTest.php
 
 push:
 	git push

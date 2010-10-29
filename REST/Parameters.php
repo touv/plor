@@ -48,15 +48,12 @@
  */
 class REST_Parameters
 {
-    protected $sections;
     protected $parameters;
     /**
      * Constructor
      */
-    function __construct(array $sections, array $parameters)
+    function __construct(array $sections, array $parameters, REST_Input $input)
     {
-        $this->sections = $sections;
-
         foreach($parameters as $p) {
             if (is_array($p)) {
                 foreach($p as $q)
@@ -67,21 +64,13 @@ class REST_Parameters
                 $this->parameters[$p] = array($p);
             }
         }
-        $this->parameters['server_uri'] = array('server_uri');
-        $this->parameters['server_path'] = array('server_path');
-    }
-
-    /**
-     * getSection
-     * @param Section 
-     */
-    public function section($i = null)
-    {
-        if (is_null($i)) $i = count($this->sections) - 1;
-        settype($i, 'integer');
-        if ($i < 0) $i = 0;
-
-        return isset($this->sections[$i]) ?  $this->sections[$i] : null;
+        // Super parameters
+        $_REQUEST['__sections'] = new ArrayObject($sections);
+        $this->parameters['__sections'] = array('__sections');
+        $_REQUEST['__server'] = $input;
+        $this->parameters['__server'] = array('__server');
+        $_REQUEST['__method'] = $input->method();
+        $this->parameters['__method'] = array('__method');
     }
 
     /**

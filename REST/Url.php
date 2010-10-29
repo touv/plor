@@ -53,7 +53,7 @@ class REST_Url
 {
     static $splitters = array();
     protected $rules;
-    protected $methods = array();
+    protected $callbacks = array();
     protected $sections = array();
 
     protected $input = null;
@@ -99,10 +99,20 @@ class REST_Url
         return new REST_Url($tpl);
     }
 
+    public function bind($classname, $callback, $params = array())
+    {
+        if (is_callable($callback) and is_array($params)) {
+            $this->callbacks[] = array($method, $callback, $params);
+        }
+        return $this;
+    }
+
+
+
     public function bindMethod($method, $callback, $params = array())
     {
         if (is_callable($callback) and is_array($params)) {
-            $this->methods[] = array($method, $callback, $params);
+            $this->callbacks[] = array($method, $callback, $params);
         }
         return $this;
     }
@@ -153,10 +163,12 @@ class REST_Url
         if (!sizeof($this->sections)) return false;
         $ret = false;
         $method = $this->input->method();
-        foreach($this->methods as $binding) {
-            if ($binding[0] === $method) {
-                $ret = true;
-                call_user_func($binding[1], new REST_Parameters($this->sections, $binding[2], $this->input), $headers);
+        if (sizeof($this->callbacks)) {
+            foreach($this->callbacks as $binding) {
+                if ($binding[0] === $method) {
+                    $ret = true;
+                    call_user_func($binding[1], new REST_Parameters($this->sections, $binding[2], $this->input), $headers);
+                }
             }
         }
         return $ret;

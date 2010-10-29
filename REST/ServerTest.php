@@ -7,19 +7,20 @@ set_include_path(
 
 require_once 'REST/EasyClient.php';
 
-define('DF', rtrim(dirname(__FILE__), '/').'/');
-unlink(DF.'/../example/data.txt');
+define('HOST', 'localhost');
+define('PORT', 8000);
+define('BASE', 'rest_server_test');
+
+unlink(sprintf('%s/../%s/data.txt', rtrim(dirname(__FILE__), '/'),BASE));
 
 class Test extends PHPUnit_Framework_TestCase 
 {
-    protected $port = 8000;
     protected $host = 'localhost';
-    protected $base = '/rest_server';
     protected $rso;
 
     function setUp()
     {
-        $this->rso = new REST_EasyClient($this->host, $this->port);
+        $this->rso = new REST_EasyClient(HOST, PORT);
     }
     function tearDown()
     {
@@ -168,7 +169,7 @@ class Test extends PHPUnit_Framework_TestCase
 
     private function url($url)
     {
-        return $this->base.$url;
+        return '/'.BASE.$url;
     }
 }
 
