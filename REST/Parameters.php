@@ -46,8 +46,8 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Parameters
-{
+class REST_Parameters  implements ArrayAccess, Iterator
+{ 
     protected $parameters;
     /**
      * Constructor
@@ -73,7 +73,7 @@ class REST_Parameters
         $this->parameters['__method'] = array('__method');
     }
 
-   /**
+    /**
      * getter
      * 
      * @param string
@@ -87,9 +87,9 @@ class REST_Parameters
         return null;
     }
 
-     /**
-      * setter
-      *
+    /**
+     * setter
+     *
      * @param string
      * @param mixed
      */
@@ -100,7 +100,7 @@ class REST_Parameters
         }
         else {
             $this->parameters[$name] = array($name);
-             $_REQUEST[$name] = $value;
+            $_REQUEST[$name] = $value;
         }
     }
 
@@ -117,11 +117,11 @@ class REST_Parameters
         return $this->get($name);
     }
 
-     /**
-      * __set
-      *
-      * Magic function
-      *
+    /**
+     * __set
+     *
+     * Magic function
+     *
      * @param string
      * @param mixed
      */
@@ -130,11 +130,11 @@ class REST_Parameters
         return $this->set($name, $value);
     }
 
-     /**
-      * __isset
-      *
-      * Magic function
-      *
+    /**
+     * __isset
+     *
+     * Magic function
+     *
      * @param string
      * @return boolean
      */
@@ -153,5 +153,92 @@ class REST_Parameters
     public function __unset($name) 
     {
         unset($this->parameters[$name]);
+    }
+
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     * @param mixed
+     */
+    public function offsetSet($offset, $value) 
+    {
+        $this->set($offset, $value);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     * @return mixed
+     */
+    public function offsetExists($offset) 
+    {
+        return isset($this->parameters[$offset]);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     */
+    public function offsetUnset($offset) 
+    {
+        unset($this->parameters[$offset]);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     * @return mixed
+     */
+    public function offsetGet($offset) 
+    {
+        return $this->get($offset);
+    }
+
+     /**
+     * Interface Iterator
+     *
+     */
+    function rewind() 
+    {
+        reset($this->parameters);
+        return $this;
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function current() 
+    {
+        return $this->get(key($this->parameters));
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function key() 
+    {
+        return key($this->parameters);
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function next() 
+    {
+        next($this->parameters);
+        return $this;
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function valid() 
+    {
+        return array_key_exists(key($this->parameters), $this->parameters);
     }
 }
