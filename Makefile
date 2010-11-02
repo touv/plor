@@ -22,4 +22,4 @@ release: REST_Server-`./extract-version.sh`.tgz
 
 REST_Server-`./extract-version.sh`.tgz: package.xml
 	$(PEAR) package package.xml
-	git tag -a -m "Version `./extract-version.sh`"  v`./extract-version.sh`
+	git tag -a -m "Version `./extract-version.sh`"  `./extract-version.sh`
