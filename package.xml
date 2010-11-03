@@ -14,7 +14,7 @@
 	</lead>
 	<date>2010-08-20</date>
 	<version>
-		<release>1.0.3</release>
+		<release>1.0.4</release>
 		<api>1.0</api>
 	</version>
 	<stability>
@@ -23,7 +23,7 @@
 	</stability>
 	<license uri="http://opensource.org/licenses/bsd-license.php">BSD Licence</license>
 	<notes>
-        mode compatible browser
+        section supérieur renvoit null
 	</notes>
 	<contents>
 		<dir name="/">

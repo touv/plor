@@ -1,2 +1,3 @@
 *.tgz
 *.swp
+rest_server_test/data.txt

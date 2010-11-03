@@ -46,17 +46,14 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Parameters
-{
-    protected $sections;
+class REST_Parameters  implements ArrayAccess, Iterator
+{ 
     protected $parameters;
     /**
      * Constructor
      */
-    function __construct(array $sections, array $parameters)
+    function __construct(array $sections, array $parameters, REST_Input $input)
     {
-        $this->sections = $sections;
-
         foreach($parameters as $p) {
             if (is_array($p)) {
                 foreach($p as $q)
@@ -67,25 +64,46 @@ class REST_Parameters
                 $this->parameters[$p] = array($p);
             }
         }
-        $this->parameters['server_uri'] = array('server_uri');
-        $this->parameters['server_path'] = array('server_path');
+        // Super parameters
+        $_REQUEST['__sections'] = new ArrayObject($sections);
+        $this->parameters['__sections'] = array('__sections');
+        $_REQUEST['__server'] = $input;
+        $this->parameters['__server'] = array('__server');
+        $_REQUEST['__method'] = $input->method();
+        $this->parameters['__method'] = array('__method');
     }
 
     /**
-     * getSection
-     * @param integer
+     * getter
+     * 
+     * @param string
+     * @return mixed
      */
-    public function section($i = null)
+    public function get($name) 
     {
-        $m = count($this->sections) - 1;
-
-        if (is_null($i)) $i = $m;
-        settype($i, 'integer');
-        if ($i < 0) $i = 0;
-        if ($i > $m) $i = $m;
-
-        return $this->sections[$i];
+        if (isset($this->parameters[$name]))
+            foreach($this->parameters[$name] as $p) 
+                if (is_string($p) and isset($_REQUEST[$p])) return $_REQUEST[$p];
+        return null;
     }
+
+    /**
+     * setter
+     *
+     * @param string
+     * @param mixed
+     */
+    public function set($name, $value) 
+    {
+        if (isset($this->parameters[$name])) {
+            $_REQUEST[$this->parameters[$name][0]] = $value;
+        }
+        else {
+            $this->parameters[$name] = array($name);
+            $_REQUEST[$name] = $value;
+        }
+    }
+
 
     /**
      * __get
@@ -96,36 +114,27 @@ class REST_Parameters
      */
     public function __get($name) 
     {
-        if (isset($this->parameters[$name]))
-            foreach($this->parameters[$name] as $p) 
-                if (is_string($p) and isset($_REQUEST[$p])) return $_REQUEST[$p];
-        return null;
+        return $this->get($name);
     }
 
-     /**
-      * __set
-      *
-      * Magic function
-      *
+    /**
+     * __set
+     *
+     * Magic function
+     *
      * @param string
      * @param mixed
      */
     public function __set($name, $value) 
     {
-        if (isset($this->parameters[$name])) {
-            $_REQUEST[$this->parameters[$name][0]] = $value;
-        }
-        else {
-            $this->parameters[$name] = array($name);
-             $_REQUEST[$name] = $value;
-        }
+        return $this->set($name, $value);
     }
 
-     /**
-      * __isset
-      *
-      * Magic function
-      *
+    /**
+     * __isset
+     *
+     * Magic function
+     *
      * @param string
      * @return boolean
      */
@@ -146,21 +155,90 @@ class REST_Parameters
         unset($this->parameters[$name]);
     }
 
-     /**
-     * __call
+    /**
+     * Interface ArrayAccess
      *
-     * Magic function
-     *
-     * @param string
+     * @param mixed
+     * @param mixed
      */
-     public function __call($name, $arguments) 
-     {
-         if (isset($this->parameters[$name]))
-             foreach($this->parameters[$name] as $p) 
-                 if (is_string($p) 
-                     and isset($_REQUEST[$p]) 
-                     and !is_null($_REQUEST[$p])
-                     and $_REQUEST[$p] !== '') return $_REQUEST[$p];
-         return current($arguments);
-     }
+    public function offsetSet($offset, $value) 
+    {
+        $this->set($offset, $value);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     * @return mixed
+     */
+    public function offsetExists($offset) 
+    {
+        return isset($this->parameters[$offset]);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     */
+    public function offsetUnset($offset) 
+    {
+        unset($this->parameters[$offset]);
+    }
+    /**
+     * Interface ArrayAccess
+     *
+     * @param mixed
+     * @return mixed
+     */
+    public function offsetGet($offset) 
+    {
+        return $this->get($offset);
+    }
+
+     /**
+     * Interface Iterator
+     *
+     */
+    function rewind() 
+    {
+        reset($this->parameters);
+        return $this;
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function current() 
+    {
+        return $this->get(key($this->parameters));
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function key() 
+    {
+        return key($this->parameters);
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function next() 
+    {
+        next($this->parameters);
+        return $this;
+    }
+
+    /**
+     * Interface Iterator
+     *
+     */
+    function valid() 
+    {
+        return array_key_exists(key($this->parameters), $this->parameters);
+    }
 }

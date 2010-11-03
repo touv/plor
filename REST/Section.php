@@ -38,7 +38,7 @@
  */
 
 /**
- * A REST Parameter
+ * A REST Section
  *
  * @category  REST
  * @package   REST_Server
@@ -48,63 +48,85 @@
  */
 class REST_Section
 {
-    protected $basename;
-    protected $filename;
-    protected $namespace;
-    protected $extension;
+    protected $data;
 
     /**
      * Constructor
      */
     function __construct($s = null)
     {
-        $info = !is_null($s) ? pathinfo($s) : array();
-        if (count($info) == 0 or $info['basename'] == '') {
-            $this->basename  = 'index.default';
-            $this->filename  = 'index';
-            $this->extension = 'default';
-        }
-        else {
-            $this->basename  = $info['basename'];
-            $this->filename  = $info['filename'];
-            $this->extension = isset($info['extension']) ? $info['extension'] : 'default';
-        }
+        $this->set($s);
     }
+
+    
+    /**
+     * Magic string
+     */
+    public function __toString()
+    {
+        return $this->get();
+    }
+
+
     /**
      * isIndex
      * @return string
      */
     public function isIndex()
     {
-        return ($this->filename  === 'index');
+        return ($this->data === 'index');
     }
 
     /**
-     * isIndex
+     * isEmpty
+     * @return boolean
+     */
+    public function isEmpty()
+    {
+        return ($this->data == '');
+    }
+
+    /**
+     * isMatch
+     * @return boolean
+     */
+    public function isMatch($s)
+    {
+        return ($this->data === $s);
+    }
+
+    /**
+     * set
+     */
+    public function set($s)
+    {
+        $this->data = !is_null($s) ? trim($s) : $this->data;
+    }
+
+    /**
+     * length
+     * @return integer
+     */
+    public function length()
+    {
+        return strlen($this->data);
+    }
+
+    /**
      * @return string
      */
-    public function getExtension()
+    public function get()
     {
-        return $this->extension;
+        return $this->data;
     }
 
-
     /**
-     * value 
      * @return string
      */
-    public function value()
+    public function getInteger()
     {
-        return $this->filename;
+        return (integer)$this->data;
     }
 
-    /**
-     * values
-     * @return array
-     */
-    public function values()
-    {
-        return preg_split("/[\s,;]+/", $this->filename);
-    }
 
 }

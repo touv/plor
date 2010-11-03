@@ -37,9 +37,9 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'REST/Section.php';
-require_once 'REST/Level.php';
 require_once 'REST/Headers.php';
+require_once 'REST/Input.php';
+
 /**
  * a simple REST Server in PHP
  *
@@ -58,18 +58,18 @@ class REST_Server
         'implicit_flush'    => true,
         'powered_by'        => 'REST_Server/1.0-php',
         'compatible'        => false,
+        'base'              => '',
     );
-    protected $root;
-    protected $sections;
-    protected $format;
-    protected $method;
+    protected $urls = array();
+
+    protected $input;
 
     /**
      * Constructor
      * @param string
      * @param array
      */
-    function __construct($rfs = null, $options = array())
+    public function __construct($options = array())
     {
         $this->options = array_merge($this->options, $options);
 
@@ -77,115 +77,63 @@ class REST_Server
         set_time_limit($this->options['time_limit']);
         error_reporting($this->options['error_reporting']);
         ob_implicit_flush($this->options['implicit_flush']);
-
-        $this->root = new REST_Level();
-
-        $r = explode('/', ltrim(self::path(), '/'));
-        foreach($r as $s) {
-            $sec = new REST_Section($s);
-            $this->format = $sec->getExtension();
-            $this->sections[] = $sec;
+        $_SERVER['REQUEST_BASE'] = $this->options['base'];
+        if ($this->options['compatible'] and isset($_GET['_'])) {
+            $_SERVER['REQUEST_METHOD'] = strtoupper($_GET['_']);
         }
 
-        $this->method = strtoupper($_SERVER['REQUEST_METHOD']);
-        if ($this->options['compatible'] and isset($_GET['_']))
-            $this->method = strtoupper($_GET['_']);
+        $this->input = new REST_Input();
     }
 
     /**
-     * return the root of the resource
-     * @return REST_Level
+     * REST_Server factory
+     * @return REST_Server 
      */
-    public function root()
+    public static function factory($options = array())
     {
-        return $this->root;
+        return new REST_Server($options);
     }
 
     /**
-     * handle
+     * Register a REST_Url
+     * @return REST_Server 
      */
-    public function handle()
+    public function register(REST_Url $url)
     {
-        $levels = array($this->root);
+        $url->setInput($this->input);
+        $this->urls[] = $url;
+        return $this;
+    }
 
-        $l = $this->root;
-        while($l = $l->nextLevel()) 
-            $levels[] = $l;
-
-        $i = count($this->sections) - 1;
-        if ($i < 0) $i = 0;
-
+    /**
+     *  Launch Server
+     * 
+     */
+    public function listen()
+    {
+        $headers = new REST_Headers($this->options['powered_by']);
         $found = null;
-        if (isset($levels[$i])) foreach($levels[$i] as $resource) {
-            if ($resource->match($this->sections[$i])) {
-                $found = $resource;
+        reset($this->urls);
+        while (list(, $url) = each($this->urls)) {
+            if ($url->check()) {
+                $found = $url;
                 break;
             }
+        } 
+        if (is_null($found)) {
+            return $headers->send(404, true);
         }
 
-        $headers = new REST_Headers($this->options['powered_by']);
-        if (is_null($found)) 
-            return $headers->send(404, true);
-
-        if (!$found->existsAction($this->method))
+        if (!$found->apply($headers)) {
             return $headers->send(405, true);
+        }
 
-        if (!$found->setHeaders($headers))
+        if (!$headers->getStatus()) {
             return $headers->send(500, true);
-
-        $found->execAction($this->method, $headers, $this->sections);
-
-        if (!$headers->getStatus())
-            return $headers->send(500, true);
+        }
 
         return $headers->getStatus();
     }
 
-    /**
-     * Get host of the server
-     * @return string
-     */
-    static public function host()
-    {
-        static $host;
-        if (!is_null($host)) return $host;
-
-        if (isset($_SERVER['HTTP_HOST'])) {
-            $host = 'http'.
-                (!isset($_SERVER['HTTPS'])||strtolower($_SERVER['HTTPS'])!= 'on'?'':'s').
-                '://'.
-                (isset($_SERVER["HTTP_X_FORWARDED_HOST"]) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : $_SERVER['HTTP_HOST']);
-        } else {
-            $host = '';
-        }
-        $host = rtrim($host, '/');
-        return $host;
-    }
-
-    /**
-     * Get uri of the server
-     * @return string
-     */
-    static public function uri()
-    {
-        static $uri;
-        if (!is_null($uri)) return $uri;
-        $uri = self::host().self::path();
-        return $uri;
-    }
-
-    /**
-     * Get path of the server
-     * @return string
-     */
-    static public function path()
-    {
-        static $path;
-        if (!is_null($path)) return $path;
-
-        $uriAll = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['PHP_SELF'];
-        $path = false !== ($q = strpos($uriAll, '?')) ? substr($uriAll, 0, $q) : $uriAll;
-        return $path;
-    }
 
 }
