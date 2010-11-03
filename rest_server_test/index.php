@@ -1,5 +1,5 @@
 <?php
-set_include_path(get_include_path() . PATH_SEPARATOR . '/home/thouveni/devel/rest_server');
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/..' );
 
 // Load datas
 $datas = file_exists('data.txt') ? unserialize(file_get_contents('data.txt')) : null;

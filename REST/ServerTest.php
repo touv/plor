@@ -1,14 +1,20 @@
 <?php
 set_include_path(
-    get_include_path() . PATH_SEPARATOR .
-    dirname(__FILE__).DIRECTORY_SEPARATOR.'..' . DIRECTORY_SEPARATOR. '..' . DIRECTORY_SEPARATOR . 'pear'. PATH_SEPARATOR .
-    dirname(__FILE__).DIRECTORY_SEPARATOR.'..'
+    get_include_path()
+    . PATH_SEPARATOR . dirname(__FILE__).DIRECTORY_SEPARATOR.'..'
+    . DIRECTORY_SEPARATOR. '..' . DIRECTORY_SEPARATOR . 'pear'
+    . PATH_SEPARATOR . dirname(__FILE__).DIRECTORY_SEPARATOR.'..'
+    . PATH_SEPARATOR . dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'REST_Client'
 );
 
 require_once 'REST/EasyClient.php';
 
 define('HOST', 'localhost');
-define('PORT', 8000);
+if (strpos(__FILE__, 'thouveni') === FALSE) {
+    define('PORT', 80);
+} else {
+    define('PORT', 8000);
+}
 define('BASE', 'rest_server_test');
 
 unlink(sprintf('%s/../%s/data.txt', rtrim(dirname(__FILE__), '/'),BASE));
