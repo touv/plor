@@ -135,3 +135,16 @@ function get_issue($p, $h)
         $h->send(200);
     }
 }
+
+function options($p, $h)
+{
+    $h->add('Allow', implode(',', $p->__methods));
+    $h->add('Content-Length', '0');
+    $h->add('Content-Type', 'text/plain');
+    $h->send(200);
+}
+
+
+
+
+
