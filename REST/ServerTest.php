@@ -26,6 +26,11 @@ class Test extends PHPUnit_Framework_TestCase
     {
         $this->rso = null;
     }
+    function test_projets_options()    # OPTIONS / 
+    {
+        $rsp = $this->_options(200, $this->url('/'));
+        $this->assertContains('GET,POST,OPTIONS', $rsp->headers['allow']);
+    }
     function test_projets_get()    # GET / 
     {
         $rsp = $this->_get(200, $this->url('/'));
@@ -132,6 +137,10 @@ class Test extends PHPUnit_Framework_TestCase
         $rsp = $this->_get(404, $url);
     }
 
+     private function _options($code, $path)
+    {
+        return $this->assertHTTP($this->rso->options($path), $code);
+    }
     private function _delete($code, $path)
     {
         return $this->assertHTTP($this->rso->delete($path), $code);

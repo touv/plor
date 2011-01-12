@@ -56,6 +56,7 @@ class REST_Url
     protected $callbacks = array();
     protected $sections = array();
     protected $constants = array();
+    protected $methods = array();
     protected $input = null;
 
     public function __construct($tpl)
@@ -115,6 +116,7 @@ class REST_Url
     {
         if (is_callable($callback) and is_array($params)) {
             $this->callbacks[] = array($method, $callback, $params);
+            $this->methods[] = $method;
         }
         return $this;
     }
@@ -189,6 +191,7 @@ class REST_Url
                     foreach($this->constants as $constant => $value) {
                         $params->set($constant, $value);
                     }
+                    $params->set('__methods', $this->methods);
                     call_user_func($binding[1], $params, $headers);
                 }
             }

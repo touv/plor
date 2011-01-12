@@ -38,7 +38,8 @@ require_once 'REST/Url.php';
 $projects = REST_Url::factory('/{index}.xml')
     ->addConstant('test', 'all callbacks can access to this content through the REST_Parameter class') 
     ->bindMethod('GET', 'list_of_projects_in_xml')
-    ->bindMethod('POST', 'add_new_project', array('name'));
+    ->bindMethod('POST', 'add_new_project', array('name'))
+    ->bindMethod('OPTIONS', 'options');
 
 $project = REST_Url::factory('/{id}.xml')
     ->bindMethod('GET', 'get_project_in_xml')
