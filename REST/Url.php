@@ -180,7 +180,7 @@ class REST_Url
      */
     public function apply(REST_Headers $headers)
     {
-        if (!sizeof($this->sections)) return false;
+//        if (!sizeof($this->sections)) return false;
         $ret = false;
         $method = $this->input->method();
         if (sizeof($this->callbacks)) {
