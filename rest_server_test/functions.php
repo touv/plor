@@ -105,7 +105,7 @@ function delete_issue($p, $h)
 function get_issue($p, $h)
 {
     global $datas;
-    if ($p->__sections[2]->isMatch('xml')) {
+    if ($p->__sections[2]->isEqual('xml')) {
          $h->add('content-type', 'text/xml');
          $project_id = $p->__sections[0]->getInteger();
          $issue_id = $p->__sections[1]->getInteger();
@@ -120,7 +120,7 @@ function get_issue($p, $h)
          echo '</issue>';
          $h->send(200);
     }
-    elseif ($p->__sections[2]->isMatch('html')) {
+    elseif ($p->__sections[2]->isEqual('html')) {
         $h->add('content-type', 'text/html');
         $project_id = $p->__sections[0]->getInteger();
         $issue_id = $p->__sections[1]->getInteger();
