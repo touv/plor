@@ -87,10 +87,10 @@ class REST_Section
     }
 
     /**
-     * isMatch
+     * isEqual
      * @return boolean
      */
-    public function isMatch($s)
+    public function isEqual($s)
     {
         return ($this->data === $s);
     }
