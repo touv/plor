@@ -183,16 +183,18 @@ class REST_Url
 //        if (!sizeof($this->sections)) return false;
         $ret = false;
         $method = $this->input->method();
+        $params = new REST_Parameters($this->sections, $this->input);
+        $stream = null;
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
                 if ($binding[0] === $method or $binding[0] === '*') {
                     $ret = true;
-                    $params = new REST_Parameters($this->sections, $binding[2], $this->input);
+                    $params->exchange($binding[2]);
                     foreach($this->constants as $constant => $value) {
                         $params->set($constant, $value);
                     }
                     $params->set('__methods', $this->methods);
-                    call_user_func($binding[1], $params, $headers);
+                    $stream = call_user_func($binding[1], $params, $headers, $stream);
                 }
             }
         }

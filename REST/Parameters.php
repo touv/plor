@@ -52,7 +52,22 @@ class REST_Parameters  implements ArrayAccess, Iterator
     /**
      * Constructor
      */
-    function __construct(array $sections, array $parameters, REST_Input $input)
+    function __construct(array $sections, REST_Input $input, array $parameters = array())
+    {
+        $this->exchange($parameters);
+        // Super parameters
+        $_REQUEST['__sections'] = new ArrayObject($sections);
+        $_REQUEST['__server'] = $input;
+        $_REQUEST['__method'] = $input->method();
+    }
+
+     /**
+     * exchange
+     * 
+     * @param array
+     * @return mixed
+     */
+    public function exchange(array $parameters) 
     {
         foreach($parameters as $p) {
             if (is_array($p)) {
@@ -64,14 +79,11 @@ class REST_Parameters  implements ArrayAccess, Iterator
                 $this->parameters[$p] = array($p);
             }
         }
-        // Super parameters
-        $_REQUEST['__sections'] = new ArrayObject($sections);
         $this->parameters['__sections'] = array('__sections');
-        $_REQUEST['__server'] = $input;
         $this->parameters['__server'] = array('__server');
-        $_REQUEST['__method'] = $input->method();
         $this->parameters['__method'] = array('__method');
     }
+
 
     /**
      * getter
