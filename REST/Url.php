@@ -58,11 +58,11 @@ class REST_Url
     protected $constants = array();
     protected $methods = array();
     protected $input = null;
+    protected $parameters = null;
 
     public function __construct($tpl)
     {
         $this->rules = self::compile($tpl);
-
     }
 
     public function __destruct()
@@ -76,6 +76,16 @@ class REST_Url
     public function setInput(REST_Input $r)
     {
         $this->input = $r;
+        return $this;
+    }
+
+    /**
+     * set REST_Parameters
+     * @return REST_Url
+     */
+    public function setParameters(REST_Parameters $p)
+    {
+        $this->parameters = $p;
         return $this;
     }
 
@@ -144,6 +154,7 @@ class REST_Url
      */
     public function check()
     {
+        if (is_null($this->input)) return false;
         $path = $this->input->path();
         $this->sections = array();
         foreach($this->rules as $rule) {
@@ -180,21 +191,26 @@ class REST_Url
      */
     public function apply(REST_Headers $headers)
     {
-//        if (!sizeof($this->sections)) return false;
+        if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        $params = new REST_Parameters($this->sections, $this->input);
+        if (is_null($this->parameters)) {
+            $this->parameters = REST_Parameters::factory($this->sections, $this->input);
+        }
+        else {
+            $this->parameters->register($this->sections, $this->input);
+        }
         $stream = null;
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
                 if ($binding[0] === $method or $binding[0] === '*') {
                     $ret = true;
-                    $params->exchange($binding[2]);
+                    $this->parameters->exchange($binding[2]);
                     foreach($this->constants as $constant => $value) {
-                        $params->set($constant, $value);
+                        $this->parameters->set($constant, $value);
                     }
-                    $params->set('__methods', $this->methods);
-                    $stream = call_user_func($binding[1], $params, $headers, $stream);
+                    $this->parameters->set('__methods', $this->methods);
+                    $stream = call_user_func($binding[1], $this->parameters, $headers, $stream);
                 }
             }
         }

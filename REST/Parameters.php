@@ -49,19 +49,37 @@
 class REST_Parameters  implements ArrayAccess, Iterator
 { 
     protected $parameters;
+
     /**
-     * Constructor
+     * factory
+     * @param array
+     * @param REST_Input
+     * @param array
+     * @retrun REST_Parameters
      */
-    function __construct(array $sections, REST_Input $input, array $parameters = array())
+    public static function factory(array $sections, REST_Input $input, array $parameters = array())
     {
-        $this->exchange($parameters);
+        $p = new REST_Parameters;
+        $p->register($sections, $input);
+        $p->exchange($parameters);
+        return $p;
+    }
+
+    /**
+     * register
+     * 
+     * @param array
+     * @return mixed
+     */
+    public function register(array $sections, REST_Input $input) 
+    {
         // Super parameters
         $_REQUEST['__sections'] = new ArrayObject($sections);
         $_REQUEST['__server'] = $input;
         $_REQUEST['__method'] = $input->method();
     }
 
-     /**
+    /**
      * exchange
      * 
      * @param array
@@ -207,7 +225,7 @@ class REST_Parameters  implements ArrayAccess, Iterator
         return $this->get($offset);
     }
 
-     /**
+    /**
      * Interface Iterator
      *
      */
