@@ -77,6 +77,9 @@ class REST_Parameters  implements ArrayAccess, Iterator
         $_REQUEST['__sections'] = new ArrayObject($sections);
         $_REQUEST['__server'] = $input;
         $_REQUEST['__method'] = $input->method();
+        $this->parameters['__sections'] = array('__sections');
+        $this->parameters['__server'] = array('__server');
+        $this->parameters['__method'] = array('__method');
     }
 
     /**
