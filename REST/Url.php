@@ -57,8 +57,8 @@ class REST_Url
     protected $sections = array();
     protected $constants = array();
     protected $methods = array();
-    protected $input = null;
-    protected $parameters = null;
+    protected $input;
+    protected $hook_parameters;
 
     public function __construct($tpl)
     {
@@ -76,16 +76,6 @@ class REST_Url
     public function setInput(REST_Input $r)
     {
         $this->input = $r;
-        return $this;
-    }
-
-    /**
-     * set REST_Parameters
-     * @return REST_Url
-     */
-    public function setParameters(REST_Parameters $p)
-    {
-        $this->parameters = $p;
         return $this;
     }
 
@@ -114,6 +104,21 @@ class REST_Url
     {
         return new REST_Url($tpl);
     }
+
+
+    /**
+     * set a hook for parameters
+     * @param callback
+     * @return REST_Url
+     */
+    public function hookParameters($callback)
+    {
+        if (is_callable($callback)) {
+            $this->hook_parameters = $callback;
+        }
+        return $this;
+    }
+
 
     /**
      * Link method with a callback
@@ -194,23 +199,21 @@ class REST_Url
         if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        if (is_null($this->parameters)) {
-            $this->parameters = REST_Parameters::factory($this->sections, $this->input);
-        }
-        else {
-            $this->parameters->register($this->sections, $this->input);
-        }
+        $parameters = REST_Parameters::factory($this->sections, $this->input);
         $stream = null;
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
                 if ($binding[0] === $method or $binding[0] === '*') {
                     $ret = true;
-                    $this->parameters->exchange($binding[2]);
+                    $parameters->exchange($binding[2]);
                     foreach($this->constants as $constant => $value) {
-                        $this->parameters->set($constant, $value);
+                        $parameters->set($constant, $value);
                     }
-                    $this->parameters->set('__methods', $this->methods);
-                    $stream = call_user_func($binding[1], $this->parameters, $headers, $stream);
+                    $parameters->set('__methods', $this->methods);
+                    if (!is_null($this->hook_parameters)) {
+                        call_user_func($this->hook_parameters, $parameters);
+                    }
+                    $stream = call_user_func($binding[1], $parameters, $headers, $stream);
                 }
             }
         }
