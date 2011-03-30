@@ -88,11 +88,12 @@ class REST_Url
      */
     public static function registerSplitter($name, $callback)
     {
-        if (is_callable($callback)) {
-            self::$splitters[$name] = $callback;
-            return true;
-        }
-        return false;
+        if (!is_string($name))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+        if (!is_callable($callback)) 
+            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+        self::$splitters[$name] = $callback;
+        return true;
     }
 
     /**
@@ -100,9 +101,11 @@ class REST_Url
      * @param string
      * @return REST_Url
      */
-    public static function factory($tpl)
+    public static function factory($name)
     {
-        return new REST_Url($tpl);
+        if (!is_string($name))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+        return new REST_Url($name);
     }
 
 
@@ -113,9 +116,9 @@ class REST_Url
      */
     public function hookParameters($callback)
     {
-        if (is_callable($callback)) {
-            $this->hook_parameters = $callback;
-        }
+        if (!is_callable($callback)) 
+            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+        $this->hook_parameters = $callback;
         return $this;
     }
 
@@ -129,10 +132,15 @@ class REST_Url
      */
     public function bindMethod($method, $callback, $params = array())
     {
-        if (is_callable($callback) and is_array($params)) {
-            $this->callbacks[] = array($method, $callback, $params);
-            $this->methods[] = $method;
-        }
+        if (!is_string($method))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($method).' given', E_USER_ERROR);
+        if (!is_callable($callback)) 
+            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+        if (!is_array($params)) 
+            trigger_error('Argument 3 passed to '.__METHOD__.' must be a array, '.gettype($params).' given', E_USER_ERROR);
+
+        $this->callbacks[] = array($method, $callback, $params);
+        $this->methods[] = $method;
         return $this;
     }
 
@@ -144,9 +152,11 @@ class REST_Url
      */
     public function addConstant($name, $value)
     {
-        if (preg_match(',^\w+$,', $name)) {
-            $this->constants[$name] = $value;
-        }
+        if (!is_string($name))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+        if (!preg_match(',^\w+$,', $name)) 
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string, '.$name.' given', E_USER_ERROR);
+        $this->constants[$name] = $value;
         return $this;
     }
 
