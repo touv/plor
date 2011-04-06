@@ -145,6 +145,9 @@ function options($p, $h)
 }
 
 
-
+function enrich_params($p, $h)
+{
+    $p->newparam = 'Adding a new param';
+}
 
 

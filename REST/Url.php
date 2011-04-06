@@ -108,20 +108,22 @@ class REST_Url
         return new REST_Url($name);
     }
 
-
     /**
-     * set a hook for parameters
+     * Link parameter with a callback
+     * @param string
      * @param callback
+     * @param array
      * @return REST_Url
      */
-    public function hookParameters($callback)
+    public function bindParameter($paraname, $callback)
     {
+        if (!is_string($paraname))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($paraname).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
             trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
-        $this->hook_parameters = $callback;
+        $this->callbacks[] = array($paraname, $callback);
         return $this;
     }
-
 
     /**
      * Link method with a callback
@@ -209,20 +211,24 @@ class REST_Url
         if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        $parameters = REST_Parameters::factory($this->sections, $this->input);
+        $parameters = REST_Parameters::singleton();
+        foreach($this->constants as $constant => $value) {
+            $parameters->set($constant, $value);
+        }
+        $parameters->set('__sections',  new ArrayObject($this->sections));
+        $parameters->set('__server',  $this->input);
+        $parameters->set('__method',  $this->input->method());
+        $parameters->set('__methods', $this->methods);
+
         $stream = null;
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
-                if ($binding[0] === $method or $binding[0] === '*') {
+                if (isset($binding[2]) and ($binding[0] === $method or $binding[0] === '*')) {
                     $ret = true;
                     $parameters->exchange($binding[2]);
-                    foreach($this->constants as $constant => $value) {
-                        $parameters->set($constant, $value);
-                    }
-                    $parameters->set('__methods', $this->methods);
-                    if (!is_null($this->hook_parameters)) {
-                        call_user_func($this->hook_parameters, $parameters);
-                    }
+                    $stream = call_user_func($binding[1], $parameters, $headers, $stream);
+                }
+                elseif (!isset($binding[2]) and (isset($parameters->$binding[0]) or $binding[0] === '*')) {
                     $stream = call_user_func($binding[1], $parameters, $headers, $stream);
                 }
             }

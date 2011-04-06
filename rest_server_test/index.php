@@ -42,6 +42,7 @@ $projects = REST_Url::factory('/{index}.xml')
     ->bindMethod('OPTIONS', 'options');
 
 $project = REST_Url::factory('/{id}.xml')
+    ->bindParameter('*', 'enrich_params')
     ->bindMethod('GET', 'get_project_in_xml')
     ->bindMethod('DELETE', 'delete_project');
 

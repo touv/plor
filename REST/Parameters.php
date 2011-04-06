@@ -46,41 +46,28 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Parameters  implements ArrayAccess, Iterator
+class REST_Parameters
 { 
-    protected $parameters;
+    protected static $instance;
+
+
+    protected $parameters = array();
+    protected $data = array();
 
     /**
-     * factory
-     * @param array
-     * @param REST_Input
-     * @param array
-     * @retrun REST_Parameters
+     * Une seule instance
+     *
+     * @return REST_Parameters
      */
-    public static function factory(array $sections, REST_Input $input, array $parameters = array())
+    static public function singleton()
     {
-        $p = new REST_Parameters;
-        $p->register($sections, $input);
-        $p->exchange($parameters);
-        return $p;
+        if (!isset(self::$instance)) {
+            self::$instance = new REST_Parameters;
+        }
+        return self::$instance;
     }
+    // }}}
 
-    /**
-     * register
-     * 
-     * @param array
-     * @return mixed
-     */
-    public function register(array $sections, REST_Input $input) 
-    {
-        // Super parameters
-        $_REQUEST['__sections'] = new ArrayObject($sections);
-        $_REQUEST['__server'] = $input;
-        $_REQUEST['__method'] = $input->method();
-        $this->parameters['__sections'] = array('__sections');
-        $this->parameters['__server'] = array('__server');
-        $this->parameters['__method'] = array('__method');
-    }
 
     /**
      * exchange
@@ -100,9 +87,6 @@ class REST_Parameters  implements ArrayAccess, Iterator
                 $this->parameters[$p] = array($p);
             }
         }
-        $this->parameters['__sections'] = array('__sections');
-        $this->parameters['__server'] = array('__server');
-        $this->parameters['__method'] = array('__method');
     }
 
 
@@ -114,9 +98,16 @@ class REST_Parameters  implements ArrayAccess, Iterator
      */
     public function get($name) 
     {
-        if (isset($this->parameters[$name]))
-            foreach($this->parameters[$name] as $p) 
-                if (is_string($p) and isset($_REQUEST[$p])) return $_REQUEST[$p];
+        if (isset($this->parameters[$name])) {
+            foreach($this->parameters[$name] as $p) {
+                if (is_string($p) and isset($_REQUEST[$p])) {
+                    return $_REQUEST[$p];
+                }
+            }
+        }
+        elseif (isset($this->data[$name])) {
+            return $this->data[$name];
+        }
         return null;
     }
 
@@ -132,9 +123,9 @@ class REST_Parameters  implements ArrayAccess, Iterator
             $_REQUEST[$this->parameters[$name][0]] = $value;
         }
         else {
-            $this->parameters[$name] = array($name);
-            $_REQUEST[$name] = $value;
+            $this->data[$name] = $value;
         }
+        return $this;
     }
 
 
@@ -160,7 +151,7 @@ class REST_Parameters  implements ArrayAccess, Iterator
      */
     public function __set($name, $value) 
     {
-        return $this->set($name, $value);
+        $this->set($name, $value);
     }
 
     /**
@@ -173,11 +164,11 @@ class REST_Parameters  implements ArrayAccess, Iterator
      */
     public function __isset($name) 
     {
-        return isset($this->parameters[$name]);
+        return isset($this->parameters[$name]) or isset($this->data[$name]);
     }
 
     /**
-     * __isset
+     * __unset
      *
      * Magic function
      *
@@ -185,93 +176,7 @@ class REST_Parameters  implements ArrayAccess, Iterator
      */
     public function __unset($name) 
     {
-        unset($this->parameters[$name]);
+        $this->set($name, null);
     }
 
-    /**
-     * Interface ArrayAccess
-     *
-     * @param mixed
-     * @param mixed
-     */
-    public function offsetSet($offset, $value) 
-    {
-        $this->set($offset, $value);
-    }
-    /**
-     * Interface ArrayAccess
-     *
-     * @param mixed
-     * @return mixed
-     */
-    public function offsetExists($offset) 
-    {
-        return isset($this->parameters[$offset]);
-    }
-    /**
-     * Interface ArrayAccess
-     *
-     * @param mixed
-     */
-    public function offsetUnset($offset) 
-    {
-        unset($this->parameters[$offset]);
-    }
-    /**
-     * Interface ArrayAccess
-     *
-     * @param mixed
-     * @return mixed
-     */
-    public function offsetGet($offset) 
-    {
-        return $this->get($offset);
-    }
-
-    /**
-     * Interface Iterator
-     *
-     */
-    function rewind() 
-    {
-        reset($this->parameters);
-        return $this;
-    }
-
-    /**
-     * Interface Iterator
-     *
-     */
-    function current() 
-    {
-        return $this->get(key($this->parameters));
-    }
-
-    /**
-     * Interface Iterator
-     *
-     */
-    function key() 
-    {
-        return key($this->parameters);
-    }
-
-    /**
-     * Interface Iterator
-     *
-     */
-    function next() 
-    {
-        next($this->parameters);
-        return $this;
-    }
-
-    /**
-     * Interface Iterator
-     *
-     */
-    function valid() 
-    {
-        return array_key_exists(key($this->parameters), $this->parameters);
-    }
 }
