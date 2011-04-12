@@ -1,5 +1,5 @@
 <?php
-set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/..' );
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/../lib' );
 
 // Load datas
 $datas = file_exists('data.txt') ? unserialize(file_get_contents('data.txt')) : null;
@@ -8,63 +8,48 @@ if (!is_array($datas))
 
 
 require_once 'functions.php';
+require_once 'translaters.php';
 
-// Define Splitters
-require_once 'REST/Url.php';
-REST_Url::registerSplitter('index',
-    function ($url, $sec) {
-       if ($url == '') {
-          $url .= 'index.xml';
-          $sec->set('index');
-       } elseif (preg_match('/^index/', $url)) {
-          $sec->set('index');
-       }
-       return $url;
-    }
-);
-REST_Url::registerSplitter('id',
-    function ($url, $sec) {
-        if (preg_match('/(^[0-9]+)/', $url, $m)) {
-            $sec->set($m[1]);
-       }
-       return $url;
-    }
-);
 
+require_once 'PRSUrl.php';
 
 
 // Define Resources
-require_once 'REST/Url.php';
-$projects = REST_Url::factory('/{index}.xml')
-    ->addConstant('test', 'all callbacks can access to this content through the REST_Parameter class') 
+$projects = PRSUrl::factory('/{index}.xml')
+    ->translate('index', 'translaters_index')
+    ->addConstant('test', 'all callbacks can access to this content through the PRSParameter class') 
     ->bindMethod('GET', 'list_of_projects_in_xml')
     ->bindMethod('POST', 'add_new_project', array('name'))
     ->bindMethod('OPTIONS', 'options');
 
-$project = REST_Url::factory('/{id}.xml')
+$project = PRSUrl::factory('/{id}.xml')
+    ->translate('id', 'translaters_id')
     ->bindParameter('*', 'enrich_params')
     ->bindMethod('GET', 'get_project_in_xml')
     ->bindMethod('DELETE', 'delete_project');
 
-$issues = REST_Url::factory('/{id}/{index}.xml')
+$issues = PRSUrl::factory('/{id}/{index}.xml')
+    ->translate('id', 'translaters_id')
+    ->translate('index', 'translaters_index')
     ->bindMethod('GET', 'list_of_issues_in_xml')
     ->bindMethod('POST', 'add_new_issue', array(array('description', 'd', 'desc')));
 
-$issue = REST_Url::factory('/{id}/{id}.(xml|html)')
+$issue = PRSUrl::factory('/{id}/{id}.(xml|html)')
+    ->translate('id', 'translaters_id')
     ->bindMethod('GET', 'get_issue')
     ->bindMethod('DELETE', 'delete_issue');
 
 // Launch the server
-require_once 'REST/Server.php';
+require_once 'PRS.php';
 $options = array(
     'base' => '/rest_server_test',
     );
-REST_Server::factory($options)
-    ->register($projects)
-    ->register($project)
-    ->register($issues)
-    ->register($issue)
-    ->listen();
+$app = PRS::factory($options);
+$app[] = $projects;
+$app[] = $project;
+$app[] = $issues;
+$app[] = $issue;
+$app->listen();
 
 // Save datas
 file_put_contents('data.txt', serialize($datas));

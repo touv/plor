@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * REST_Server
+ * P3C
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -31,28 +31,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  REST
- * @package   REST_Client
+ * @package   PRSClient
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'REST/Section.php';
-require_once 'REST/Parameters.php';
+require_once 'STR.php';
+require_once 'PRSParameters.php';
 
 /**
  * A REST Url
  *
  * @category  REST
- * @package   REST_Server
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Url
+class PRSUrl
 {
-    static $splitters = array();
     protected $rules;
+    protected $translaters = array();
     protected $callbacks = array();
     protected $sections = array();
     protected $constants = array();
@@ -60,60 +60,73 @@ class REST_Url
     protected $input;
     protected $hook_parameters;
 
-    public function __construct($tpl)
+    /**
+     * Constructor
+     * @param string 
+     */
+    public function __construct($content)
     {
-        $this->rules = self::compile($tpl);
-    }
-
-    public function __destruct()
-    {
+        $this->exchange($content);
     }
 
     /**
-     * set REST_Request
-     * @return REST_Url
+     * Factory
+     * @param string 
+     * @return PRSUrl
      */
-    public function setInput(REST_Input $r)
+    public static function factory($content)
+    {
+        return new PRSUrl($content);
+    }
+
+    /**
+     * Exchange
+     *
+     * @param string 
+     * @param string
+     * @return STR
+     */
+    public function exchange($content) 
+    {
+        if (!is_string($content))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
+        $this->rules = self::compile($content);
+        return $this;
+    }
+
+      /**
+     * set PRSRequest
+     * @return PRSUrl
+     */
+    public function setInput(PRSInput $r)
     {
         $this->input = $r;
         return $this;
     }
 
     /**
-     * Register a template splitter
-     * @params string
-     * @params callbacks
-     * @static
-     * @return boolean
+     * catch a part of url
+     * @param string
+     * @param callback
+     * @return PRSUrl
      */
-    public static function registerSplitter($name, $callback)
+    public function translate($name, $callback)
     {
         if (!is_string($name))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
             trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
-        self::$splitters[$name] = $callback;
-        return true;
+        $this->translaters[$name] = $callback;
+        return $this;
     }
 
-    /**
-     * REST_Url factory
-     * @param string
-     * @return REST_Url
-     */
-    public static function factory($name)
-    {
-        if (!is_string($name))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
-        return new REST_Url($name);
-    }
 
     /**
      * Link parameter with a callback
      * @param string
      * @param callback
      * @param array
-     * @return REST_Url
+     * @return PRSUrl
      */
     public function bindParameter($paraname, $callback)
     {
@@ -130,7 +143,7 @@ class REST_Url
      * @param string
      * @param callback
      * @param array
-     * @return REST_Url
+     * @return PRSUrl
      */
     public function bindMethod($method, $callback, $params = array())
     {
@@ -150,7 +163,7 @@ class REST_Url
      * Add a parameter like a constant
      * @param string
      * @param mixed
-     * @return REST_Url
+     * @return PRSUrl
      */
     public function addConstant($name, $value)
     {
@@ -176,24 +189,24 @@ class REST_Url
         $this->sections = array();
         foreach($this->rules as $rule) {
             $catch = false;
-            $section = new REST_Section;
+            $section = new STR;
             if ($rule[0] === '{') {
                 $name = trim($rule, '{}');
-                if (!isset(self::$splitters[$name])) return false;
-                $path = call_user_func(self::$splitters[$name], $path, $section);
+                if (!isset($this->translaters[$name])) return false;
+                $path = call_user_func($this->translaters[$name], $path, $section);
                 $catch = true;
             }
             elseif ($rule[0] === '(') {
                 if (!preg_match(','.$rule.',', $path, $m)) return false;
-                $section->set($m[1]);
+                $section->exchange($m[1]);
                 $catch = true;
             }
             elseif (strpos($path, $rule) === 0) {
-                $section->set($rule);
+                $section->exchange($rule);
             }
             else return false;
             if ($section->isEmpty()) return false;
-            $path = substr($path, $section->length());
+            $path = substr($path, count($section));
             if ($catch) {
                 $this->sections[] = $section;
             }
@@ -206,19 +219,19 @@ class REST_Url
      *
      * @return boolean
      */
-    public function apply(REST_Headers $headers)
+    public function apply(PRSHeaders $headers)
     {
         if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        $parameters = REST_Parameters::singleton();
+        $parameters = PRSParameters::singleton();
         foreach($this->constants as $constant => $value) {
-            $parameters->set($constant, $value);
+            $parameters[$constant] = $value;
         }
-        $parameters->set('__sections',  new ArrayObject($this->sections));
-        $parameters->set('__server',  $this->input);
-        $parameters->set('__method',  $this->input->method());
-        $parameters->set('__methods', $this->methods);
+        $parameters->__sections = new ArrayObject($this->sections);
+        $parameters->__server   = $this->input;
+        $parameters->__method   = $this->input->method();
+        $parameters->__methods  = $this->methods;
 
         $stream = null;
         if (sizeof($this->callbacks)) {

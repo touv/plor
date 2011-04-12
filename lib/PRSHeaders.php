@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * REST_Server
+ * P3C
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -31,7 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  REST
- * @package   REST_Client
+ * @package   PRSClient
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
@@ -40,13 +40,13 @@
 /**
  * A REST Headers
  *
- * @category  REST
- * @package   REST_Server
+ * @category  PRS
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Headers
+class PRSHeaders
 {
     static $status = array(
         100 => '100 Continue',

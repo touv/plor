@@ -167,7 +167,7 @@ class Test extends PHPUnit_Framework_TestCase
     {
         $this->assertFalse($rsp->isError(), $rsp->error);
         $this->assertNotEquals(401, $rsp->code, 'Authorization Required');
-        $this->assertContains('REST_Server', $rsp->headers['x-powered-by'], $rsp->content);
+        $this->assertContains('PRS', $rsp->headers['x-powered-by'], $rsp->content);
         if ($code != 200)
             $this->assertNotEquals(200, $rsp->code, $rsp->content);
         $this->assertEquals($code, $rsp->code, $rsp->content);

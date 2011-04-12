@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * REST_Server
+ * P3C
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -30,8 +30,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * @category  REST
- * @package   REST_Client
+ * @category  PRS
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
@@ -40,34 +40,31 @@
 /**
  * A REST Parameter
  *
- * @category  REST
- * @package   REST_Server
+ * @category  PRS
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Parameters
+class PRSParameters implements ArrayAccess 
 { 
+    public static $encoding = 'UTF-8';
     protected static $instance;
-
-
     protected $parameters = array();
-    protected $data = array();
+    protected $content = array();
 
     /**
      * Une seule instance
      *
-     * @return REST_Parameters
+     * @return PRSParameters
      */
     static public function singleton()
     {
         if (!isset(self::$instance)) {
-            self::$instance = new REST_Parameters;
+            self::$instance = new PRSParameters;
         }
         return self::$instance;
     }
-    // }}}
-
 
     /**
      * exchange
@@ -89,94 +86,82 @@ class REST_Parameters
         }
     }
 
-
     /**
-     * getter
-     * 
-     * @param string
-     * @return mixed
+     * @see Magic
      */
-    public function get($name) 
+    public function __get($offset) 
     {
-        if (isset($this->parameters[$name])) {
-            foreach($this->parameters[$name] as $p) {
+        return $this->offsetGet($offset);
+    }
+    /**
+     * @see Magic
+     */
+    public function __set($offset, $value) 
+    {
+        return $this->offsetSet($offset, $value);
+    }
+    /**
+     * @see Magic
+     */
+    public function __isset($offset) 
+    {
+        return $this->offsetExists($offset);
+    }
+    /**
+     * @see Magic
+     */
+    public function __unset($offset) 
+    {
+        return $this->offsetUnset($offset);
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetExists($offset) 
+    {
+        return isset($this->parameters[$offset]) or isset($this->content[$offset]);
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetGet($offset) 
+    {
+        if (isset($this->parameters[$offset])) {
+            foreach($this->parameters[$offset] as $p) {
                 if (is_string($p) and isset($_REQUEST[$p])) {
-                    return $_REQUEST[$p];
+                    return (is_string($_REQUEST[$p]) ? STR::factory($_REQUEST[$p], self::$encoding) : $_REQUEST[$p]);
                 }
             }
         }
-        elseif (isset($this->data[$name])) {
-            return $this->data[$name];
+        elseif (isset($this->content[$offset])) {
+            return (is_string($this->content[$offset]) ? STR::factory($this->content[$offset], self::$encoding) : $this->content[$offset]);
         }
         return null;
     }
-
     /**
-     * setter
-     *
-     * @param string
-     * @param mixed
+     *  @see ArrayAccess
      */
-    public function set($name, $value) 
+    public function offsetSet($offset, $value) 
     {
-        if (isset($this->parameters[$name])) {
-            $_REQUEST[$this->parameters[$name][0]] = $value;
+        if (isset($this->parameters[$offset])) {
+            $_REQUEST[$this->parameters[$offset][0]] = $value;            
         }
         else {
-            $this->data[$name] = $value;
+            if (is_null($offset)) {
+                array_push($this->content, $value);
+            }
+            else {
+                $this->content[$offset] = $value;
+            }
         }
-        return $this;
+        return true;
     }
-
-
     /**
-     * __get
-     * 
-     * Magic function
-     *
-     * @param string
+     *  @see ArrayAccess
      */
-    public function __get($name) 
+    public function offsetUnset($offset) 
     {
-        return $this->get($name);
-    }
-
-    /**
-     * __set
-     *
-     * Magic function
-     *
-     * @param string
-     * @param mixed
-     */
-    public function __set($name, $value) 
-    {
-        $this->set($name, $value);
-    }
-
-    /**
-     * __isset
-     *
-     * Magic function
-     *
-     * @param string
-     * @return boolean
-     */
-    public function __isset($name) 
-    {
-        return isset($this->parameters[$name]) or isset($this->data[$name]);
-    }
-
-    /**
-     * __unset
-     *
-     * Magic function
-     *
-     * @param string
-     */
-    public function __unset($name) 
-    {
-        $this->set($name, null);
+        unset($this->content[$offset]);
     }
 
 }

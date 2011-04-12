@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * REST_Server
+ * P3C
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -30,49 +30,74 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * @category  REST
- * @package   REST_Client
+ * @category  PRS
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'REST/Headers.php';
-require_once 'REST/Input.php';
+require_once 'STR.php';
+require_once 'CHN.php';
+require_once 'PRSHeaders.php';
+require_once 'PRSInput.php';
 
 /**
  * a simple REST Server in PHP
  *
- * @category  REST
- * @package   REST_Server
+ * @category  PRS
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class REST_Server
+class PRS implements Countable, Iterator, ArrayAccess
 {
     protected $options = array(
         'ignore_user_abort' => true,
         'time_limit'        => 0,
         'error_reporting'   => E_ALL,
         'implicit_flush'    => true,
-        'powered_by'        => 'REST_Server/1.0-php',
+        'powered_by'        => 'PRS/1.0-php',
         'compatible'        => false,
         'base'              => '',
     );
-    protected $urls = array();
+    protected $content = array();
 
     protected $input;
 
     /**
      * Constructor
-     * @param string
      * @param array
      */
-    public function __construct($options = array())
+    public function __construct($content = array())
     {
-        $this->options = array_merge($this->options, $options);
+        $this->exchange($content);
+    }
 
+    /**
+     * Factory
+     * @param string 
+     * @return PRSUrl
+     */
+    public static function factory($content = array())
+    {
+        return new PRS($content);
+    }
+
+    /**
+     * Exchange
+     *
+     * @param string 
+     * @param string
+     * @return STR
+     */
+    public function exchange($content = array()) 
+    {
+        if (!is_array($content))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a array, '.gettype($content).' given', E_USER_ERROR);
+
+        $this->options = array_merge($this->options, $content);
         ignore_user_abort($this->options['ignore_user_abort']);
         set_time_limit($this->options['time_limit']);
         error_reporting($this->options['error_reporting']);
@@ -81,27 +106,97 @@ class REST_Server
         if ($this->options['compatible'] and isset($_GET['_'])) {
             $_SERVER['REQUEST_METHOD'] = strtoupper($_GET['_']);
         }
-
-        $this->input = new REST_Input();
+        $this->input = new PRSInput;
+        $this->content = array();
+        return $this;
     }
 
     /**
-     * REST_Server factory
-     * @return REST_Server 
+     *  @see Iterator
      */
-    public static function factory($options = array())
+    public function rewind() 
     {
-        return new REST_Server($options);
+        reset($this->content);
+    }
+    /**
+     *  @see Iterator
+     */
+    public function current() 
+    {
+        return current($this->content);
+    }
+    /**
+     *  @see Iterator
+     */
+    public function key() 
+    {
+        return key($this->content);
+    }
+    /**
+     *  @see Iterator
+     */
+    public function next() 
+    {
+        return next($this->content);
+    }
+    /**
+     *  @see Iterator
+     */
+    public function valid() 
+    {
+        return $this->current() !== false;
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetExists($offset) 
+    {
+        return isset($this->content[$offset]);
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetGet($offset) 
+    {
+        return $this->content[$offset];
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetSet($offset, $value) 
+    {
+        if (! $value instanceof PRSUrl) 
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a PRSUrl, '.gettype($value).' given', E_USER_ERROR);
+
+        $value->setInput($this->input);
+        if (is_null($offset))
+            array_push($this->content, $value);
+        else 
+            $this->content[$offset] = $value;
+        return true;
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetUnset($offset) 
+    {
+        unset($this->content[$offset]);
+    }
+    /**
+     *  @see Countable
+     */
+    public function count() 
+    {
+        return sizeof($this->content);
     }
 
     /**
-     * Register a REST_Url
-     * @return REST_Server 
+     * Register a PRSUrl
+     * @return PRS
      */
-    public function register(REST_Url $url)
+    public function register(PRSUrl $url)
     {
-        $url->setInput($this->input);
-        $this->urls[] = $url;
+        $this->offsetSet(null, $url);
         return $this;
     }
 
@@ -109,12 +204,13 @@ class REST_Server
      *  Launch Server
      * 
      */
-    public function listen()
+    public function listen(PRSHeaders $headers = null)
     {
-        $headers = new REST_Headers($this->options['powered_by']);
+        if (is_null($headers)) {
+            $headers = new PRSHeaders($this->options['powered_by']);
+        }
         $found = null;
-        reset($this->urls);
-        while (list(, $url) = each($this->urls)) {
+        foreach($this->content as $url) {
             if ($url->check()) {
                 $found = $url;
                 break;
@@ -134,6 +230,4 @@ class REST_Server
 
         return $headers->getStatus();
     }
-
-
 }
