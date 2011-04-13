@@ -37,8 +37,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'STR.php';
-require_once 'CHN.php';
+require_once 'PSO.php';
 require_once 'PRSHeaders.php';
 require_once 'PRSInput.php';
 
@@ -90,7 +89,7 @@ class PRS implements Countable, Iterator, ArrayAccess
      *
      * @param string 
      * @param string
-     * @return STR
+     * @return PSO
      */
     public function exchange($content = array()) 
     {

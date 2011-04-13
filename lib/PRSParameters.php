@@ -129,12 +129,12 @@ class PRSParameters implements ArrayAccess
         if (isset($this->parameters[$offset])) {
             foreach($this->parameters[$offset] as $p) {
                 if (is_string($p) and isset($_REQUEST[$p])) {
-                    return (is_string($_REQUEST[$p]) ? STR::factory($_REQUEST[$p], self::$encoding) : $_REQUEST[$p]);
+                    return (is_string($_REQUEST[$p]) ? PSO::factory($_REQUEST[$p], self::$encoding) : $_REQUEST[$p]);
                 }
             }
         }
         elseif (isset($this->content[$offset])) {
-            return (is_string($this->content[$offset]) ? STR::factory($this->content[$offset], self::$encoding) : $this->content[$offset]);
+            return (is_string($this->content[$offset]) ? PSO::factory($this->content[$offset], self::$encoding) : $this->content[$offset]);
         }
         return null;
     }

@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * P3C
+ * PLOR
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -31,7 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  PQO
- * @package   P3C
+ * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
@@ -41,7 +41,7 @@
  * a PDOStatement facade in PHP
  *
  * @category  PQO
- * @package   P3C
+ * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
@@ -49,77 +49,81 @@
 
 class PQO
 {
+    public static $encoding = 'UTF-8';
+
     protected static $queries = array();
 
     private $statement;
-    private $qid;
     private $query;
     private $parameters = array();
     private $executed = false;
 
-     // {{{ factory
     /**
-     * Un chaque requete, une nouvelle instance
-     *
-     * @param PDO $pdo
-     * @param string query
+     * Constructor
+     * @param PDO
+     * @param string 
+     * @param string
+     */
+    public function __construct(PDO $pdo, $query)
+    {
+        $this->exchange($pdo, $query);
+    }
+
+    /**
+     * Factory
+     * @param PDO
+     * @param string 
+     * @param string
      * @return PQO
      */
-    static public function factory($pdo, $query)
+    public static function factory(PDO $pdo, $query)
     {
-        return new PQO($pdo, $query);
+        return new PSO($pdo, $query);
     }
-    // }}}
 
-    // {{{ singleton
+    /**
+     * Exchange
+     *
+     * @param PDO
+     * @param string 
+     * @param string
+     * @return PQO
+     */
+    public function exchange(PDO $pdo, $query) 
+    {
+        if (!is_string($query))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($query).' given', E_USER_ERROR);
+        $this->close();
+        $this->query = $query;
+        $this->statement = $pdo->prepare($query);
+        return $this;
+    }
+
     /**
      * A même requete, même instance
      *
-     * @param PDO $pdo
-     * @param string query
+     * @param PDO 
+     * @param string
      * @return PQO
      */
-    static public function singleton($pdo, $query)
+    static public function singleton(PDO $pdo, $query)
     {
-        $qid = crc32($query);
+        $qid = md5($query);
         if (!isset(self::$queries[$qid])) {
-            self::$queries[$qid] = new PQO($pdo, $query, $qid);
+            self::$queries[$qid] = new PQO($pdo, $query);
         }
         return self::$queries[$qid];
     }
-    // }}}
 
-     // {{{ __construct
     /**
-     * Une requete une classe
+     * __destruct
      *
-     * @param PDO $pdo
-     * @param string query
-     * @param string qid
-     */
-    public function __construct(PDO $pdo, $query, $qid = null)
-    {
-        $this->qid       = is_null($qid) ? md5($query) : $qid;
-        $this->query     = $query;
-        $this->statement = $pdo->prepare($query);
-    }
-    // }}}
-
-     // {{{ __destruct
-    /**
-     * Une requete une classe
-     *
-     * @param PDO $pdo
-     * @param string query
-     * @param string qid
      */
     public function __destruct()
     {
         $this->close();
     }
-    // }}}
 
-     // {{{ bind
     /**
      * Association de paramètres
      *
@@ -130,9 +134,7 @@ class PQO
         $this->statement->bindParam($parameter, $value, $data_type, $length);
         return $this;
     }
-    // }}}
 
-     // {{{ bindValue
     /**
      * Association de paramètres par valeur
      *
@@ -142,9 +144,7 @@ class PQO
         $this->statement->bindParam($parameter, $value, $data_type, $length);
         return $this;
     }
-    // }}}
 
-    // {{{ with
     /**
      * Déclaration d'une association de paramètres
      *
@@ -159,9 +159,7 @@ class PQO
         $this->statement->bindParam($parameter, $this->parameters[$parameter], $data_type, $length);
         return $this;
     }
-    // }}}
 
-    // {{{ with
     /**
      * Donne une valeur à un paramètre associé
      *
@@ -174,9 +172,7 @@ class PQO
         $this->parameters[$parameter] = $data_value;
         return $this;
     }
-    // }}}
 
-    // {{{ fire
     /**
      * Exécute la requète
      *
@@ -189,9 +185,7 @@ class PQO
         $this->executed = true;
         return $this;
     }
-    // }}}
 
-    // {{{ fire
     /**
      * Retourne une ligne du résulat de la requete
      *
@@ -200,13 +194,16 @@ class PQO
     public function fetch()
     {
         if (!$this->executed) return false;
-        $ret = $this->statement->fetch(PDO::FETCH_OBJ);
-        if (!$ret) $this->close();
+        if (!$row = $this->statement->fetch(PDO::FETCH_ASSOC)) {
+            $this->close();
+            return false;
+        }
+        $ret = new stdClass;
+        foreach($row as $k => $v) 
+            $ret->$k = new PSO($v, self::$encoding);
         return $ret;
     }
-    // }}}
 
-    // {{{ fetchAll
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
@@ -220,9 +217,7 @@ class PQO
             $ret->append($row);
         return $ret;
     }
-    // }}}
 
-    // {{{ close
     /**
      * Ferme le curseur courant 
      *
@@ -234,5 +229,4 @@ class PQO
             $this->statement->closeCursor();
         return $this;
     }
-    // }}}
 }

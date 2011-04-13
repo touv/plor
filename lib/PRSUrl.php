@@ -37,7 +37,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'STR.php';
+require_once 'PSO.php';
 require_once 'PRSParameters.php';
 
 /**
@@ -84,7 +84,7 @@ class PRSUrl
      *
      * @param string 
      * @param string
-     * @return STR
+     * @return PSO
      */
     public function exchange($content) 
     {
@@ -189,7 +189,7 @@ class PRSUrl
         $this->sections = array();
         foreach($this->rules as $rule) {
             $catch = false;
-            $section = new STR;
+            $section = new PSO;
             if ($rule[0] === '{') {
                 $name = trim($rule, '{}');
                 if (!isset($this->translaters[$name])) return false;
