@@ -1,6 +1,10 @@
-Run tests, just create un syslink in your local web server :
+to run tests, just create un syslink in your local web server :
 
 % sudo ln -s /where/is/this/directory/rest_server_test /var/www
 
-or edit REST/ServerTest.php and ajust constants : HOST, POST, BASE
+or edit PRSTest.php and ajust constants : HOST, POST, BASE
+
+then launch 
+
+% phpunit tests/PRSTest.php
 
