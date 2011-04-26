@@ -48,8 +48,9 @@
  */
 class PSO implements Countable
 {
+    static public $funcs = array('md5', 'ord', 'trim', 'ltrim', 'rtrim', 'urlencode', 'urldecode');
+
     protected $content;
-    protected $funcs = array('md5', 'ord', 'trim', 'ltrim', 'rtrim');
     protected $encoding;
 
     /**
@@ -107,7 +108,7 @@ class PSO implements Countable
      */
     public function __call($name, $args)
     {
-        if (is_callable($name) and in_array($name, $this->funcs)) {
+        if (is_callable($name) and in_array($name, self::$funcs)) {
             array_unshift($args, $this->content);
             $this->content = call_user_func_array($name, $args);
         }
@@ -142,6 +143,15 @@ class PSO implements Countable
     }
 
     /**
+     * Convert class to boolean
+     * @return string
+     */
+    public function toBoolean()
+    {
+        return (boolean)$this->content;
+    }
+
+    /**
      * isEmpty
      * @return boolean
      */
@@ -167,6 +177,7 @@ class PSO implements Countable
     {
         return ($this->content === $s);
     }
+
     /**
      * isMatch
      * @return boolean
@@ -180,6 +191,15 @@ class PSO implements Countable
     }
 
     /**
+     *  contains
+     *  @return boolean
+     */
+    public function contains($needle, $offset = 0)
+    {
+        return (mb_strpos($this->content, $needle, $offset, $this->encoding) !== false);
+    }
+
+    /**
      *  replace
      *  @return PSO
      */
@@ -188,6 +208,7 @@ class PSO implements Countable
         $this->content = preg_replace($pattern, $replacement, $this->content, $limit, $count);
         return $this;
     }
+
     /**
      *  slice
      *  @return PSO
@@ -197,4 +218,38 @@ class PSO implements Countable
         $this->content = mb_substr($this->content, $start, $length, $this->encoding);
         return $this;
     }
+
+    /**
+     * upper
+     * @return PSO
+     */
+    public function upper()
+    {
+         $this->content = mb_convert_case($this->content, MB_CASE_UPPER, $this->encoding);
+         return $this;
+    }
+
+    /**
+     * lower
+     * @return PSO
+     */
+    public function lower()
+    {
+        $this->content = mb_convert_case($this->content, MB_CASE_LOWER, $this->encoding);
+        return $this;
+    }
+    /**
+     * title
+     * @return PSO
+     */
+    public function title()
+    {
+        $this->content = mb_convert_case($this->content, MB_CASE_TITLE, $this->encoding);
+        return $this;
+    }
+
+
+
+
+
 }
