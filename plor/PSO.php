@@ -48,7 +48,7 @@
  */
 class PSO implements Countable
 {
-    static public $funcs = array('md5', 'ord', 'trim', 'ltrim', 'rtrim', 'urlencode', 'urldecode');
+    static public $funcs = array('ord');
 
     protected $content;
     protected $encoding;
@@ -83,7 +83,7 @@ class PSO implements Countable
      */
     public function exchange($content, $encoding = 'UTF-8') 
     {
-        if (!is_string($content))
+        if (!is_null($content) and !is_string($content))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         if (!is_string($encoding))
             trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($encoding).' given', E_USER_ERROR);
@@ -248,8 +248,63 @@ class PSO implements Countable
         return $this;
     }
 
+    /**
+     * md5
+     * @return PSO
+     */
+    public function md5()
+    {
+        $this->content = md5($this->content);
+        return $this;
+    }
 
+    /**
+     * trim
+     * @return PSO
+     */
+    public function trim($charlist = null)
+    {
+        $this->content = trim($this->content, $charlist);
+        return $this;
+    }
 
+    /**
+     * ltrim
+     * @return PSO
+     */
+    public function ltrim($charlist = null)
+    {
+        $this->content = ltrim($this->content, $charlist);
+        return $this;
+    }
 
+    /**
+     * rtrim
+     * @return PSO
+     */
+    public function rtrim($charlist = null)
+    {
+        $this->content = rtrim($this->content, $charlist);
+        return $this;
+    }
 
+    /**
+     * urlencode
+     * @return PSO
+     */
+    public function urlencode()
+    {
+        $this->content = urlencode($this->content);
+        return $this;
+    }
+
+    /**
+     * urldecode
+     * @return PSO
+     */
+    public function urldecode()
+    {
+        $this->content = urldecode($this->content);
+        return $this;
+    }
 }
