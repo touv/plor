@@ -1,5 +1,5 @@
 <?php
-// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
+// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker :
 /**
  * PLOR
  *
@@ -223,7 +223,7 @@ class PQO
      *
      * @return PQO
      */
-    private function close()
+    public function close()
     {
         if ($this->executed) 
             $this->statement->closeCursor();

@@ -1,5 +1,5 @@
 <?php
-// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8:
+// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker:
 /**
  * PLOR
  *
@@ -49,22 +49,48 @@ require_once 'PSO.php';
  */
 class CMD
 {
-    const NOHUP = 1;
+    const STDIN  = 0;
+    const STSOUT = 1;
+    const STDERR = 2;
     const OPT_EQUAL = 1;
     const OPT_MINUS = 2;
     const OPT_QUOTE = 4;
+
+    public static $encoding = 'UTF-8';
+    public static $buffersize = 8192;
+
+    protected $options = array(
+        'short_option_separator' => '-',
+        'short_option_operator'  => ' ',
+        'long_option_separator'  => '--',
+        'long_option_operator'   => '=',
+        'short_option_size'      => 1,
+    );
+
     protected $command;
-    protected $redirect = array(0 => '/dev/null', 2 => '/dev/null');
-    protected $mode;
-    protected $pid;
+    protected $process;
+    protected $descriptorspec = array(1 => array('pipe','w'));
+    protected $descriptors = array();
+    protected $cwd;
+    protected $env;
+
+
     /**
      * Constructor
      * @param string 
      * @param string
      */
-    public function __construct($command, $mode = null)
+    public function __construct($command, $options= null)
     {
-        $this->exchange($command, $mode);
+        $this->exchange($command, $options);
+    }
+
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        $this->close();
     }
 
     /**
@@ -73,9 +99,9 @@ class CMD
      * @param string
      * @return CMD
      */
-    public static function factory($command = '', $mode = null)
+    public static function factory($command = '', $options = null)
     {
-        return new CMD($command, $mode);
+        return new CMD($command, $options);
     }
 
     /**
@@ -85,23 +111,43 @@ class CMD
      * @param string
      * @return CMD
      */
-    public function exchange($command, $mode = null) 
+    public function exchange($command, $options = null) 
     {
         if (!is_string($command))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($command).' given', E_USER_ERROR);
-        if (!is_null($mode) and !is_integer($mode)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be a integer, '.gettype($mode).' given', E_USER_ERROR);
+        if (!is_null($options) and !is_array($options)) 
+            trigger_error('Argument 2 passed to '.__METHOD__.' must be an array, '.gettype($options).' given', E_USER_ERROR);
 
         $this->command = $command;
-        $this->mode = $mode;
+        if (!is_null($options))
+            $this->options = array_merge($this->options, $options);
         return $this;
+    }
+
+
+    /**
+     * Use the class as string
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string)$this->command;
+    }
+
+    /**
+     * Convert class to string
+     * @return string
+     */
+    public function toString()
+    {
+        return (string)$this->command;
     }
 
     /**
      * Add option
      * @return CMD
      */
-    public function option($name, $value = null, $mode = null)
+    public function option($name, $value = null)
     {
         if (!is_string($name))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
@@ -109,15 +155,15 @@ class CMD
             trigger_error('Argument 1 passed to '.__METHOD__.' must contain word\'s characters, '.$name.' given', E_USER_ERROR);
         if (!is_null($value) and !is_string($value)) 
             trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
-        if (!is_null($mode) and !is_integer($mode)) 
-            trigger_error('Argument 3 passed to '.__METHOD__.' must be a integer, '.gettype($mode).' given', E_USER_ERROR);
-        $min = strlen($name) == 1 ? '-' : '--';
-        if (!is_null($mode) and ($mode & self::OPT_MINUS == self::OPT_MINUS))
-            $min = '-';
+
+        $min = strlen($name) == $this->options['short_option_size'] ? $this->options['short_option_separator'] : $this->options['long_option_separator'];
         $this->command .= ' '.$min.$name;
         if (!is_null($value)) {
-            $sep = ((strlen($min) == 1) or ($mode & self::OPT_EQUAL != self::OPT_EQUAL)) ? ' ' : '=';
-            $this->command .= $sep.escapeshellarg($value);
+            $sep = strlen($name) == $this->options['short_option_size'] ? $this->options['short_option_operator'] : $this->options['long_option_operator'];
+            if ($value == '')
+                $this->command .= $sep.'\'\'';
+            else
+                $this->command .= $sep.escapeshellarg($value);
         }
         return $this;
     }
@@ -135,13 +181,28 @@ class CMD
         return $this;
     }
 
-     /**
+    /**
      * Add param
      * @return CMD
      */
-    public function bind($handle, PFO $stream)
+    public function bind($desc, $url)
     {
-        $redirect[$handle] = '/dev/null';
+        if (!is_integer($desc))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a integer, '.gettype($desc).' given', E_USER_ERROR);
+        if (!is_string($url))
+            trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($url).' given', E_USER_ERROR);
+        $turl = parse_url($url);
+        $name = isset($turl['path']) ? realpath($turl['path']) : null;
+        $mode = $desc == 0 ? 'r' : 'w';
+
+        // Comment savoir sur le flux est compatible avec proc_open ?
+        if ($name) {
+            $this->descriptorspec[$desc] = array('file', $name, $mode);
+        }
+        else {
+            $this->descriptorspec[$desc] = array('pipe' , $mode);
+            $this->descriptors[$desc] = fopen($url, $mode);
+        }
         return $this;
     }
 
@@ -149,34 +210,107 @@ class CMD
      * execute command
      * @return CMD
      */
-    public function isAlive()
-    {
-        if (!is_null($this->pid) and posix_kill($this->pid, 0)) 
-            return true;
-        else 
-            return false;
-    }
-
-
-    /**
-     * execute command
-     * @return CMD
-     */
     public function fire()
     {
-        $compl = '';
-        if (isset($this->redirect[0])) $compl .= ' < '.$this->redirect[0];
-        if (isset($this->redirect[1])) $compl .= ' > '.$this->redirect[1];
-        if (isset($this->redirect[2])) $compl .= ' 2> '.$this->redirect[2];
-        if (!is_null($this->mode) and ($this->mode & self::NOHUP == self::NOHUP)) {
-            if(!isset($this->redirect[1])) $compl .= ' > /dev/null';
-            $this->command = 'nohup '.$this->command.' '.$compl.'& echo $!';
-            $this->pid = shell_exec($this->command);
-            return PSO::factory($this->pid);
+        $this->process = proc_open($this->command, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
+ 
+        foreach($this->descriptors as $k => $descriptor) 
+        if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {
+            if ($k == 0) {
+                $src = $this->descriptors[$k];
+                $dst = $this->pipes[$k];
+            }
+            else {
+                $src = $this->pipes[$k];
+                $dst = $this->descriptors[$k];
+            }
+            while (!feof($src)) {
+                fwrite($dst,fread($src, self::$buffersize));
+            }
+            fclose($src);
+            fclose($dst);
+            $this->descriptors[$k] = null;
         }
-        elseif(!isset($this->redirect[1])) {
-            $this->pid = null;
-            return PSO::factory(shell_exec($this->command))->rtrim();
-        }
+
+        return $this;
     }
+
+    /**
+     * Retourne une ligne du résulat de la commande
+     *
+     * @return PSO
+     */
+    public function fetch()
+    {
+        if (!$this->process and !is_resource($this->pipes[1])) return false;
+
+        if (feof($this->pipes[1])) {
+            $this->close();
+            return false;
+        }
+        if ( ! ($buf = fread($this->pipes[1], self::$buffersize))) {
+            return false;
+        }
+        return new PSO($buf, self::$encoding);
+    }
+
+    /**
+     * Retourne toute les lignes du résulat de la commande
+     *
+     * @return PSO
+     */
+    public function fetchAll()
+    {
+        if (!$this->process and !is_resource($this->pipes[1])) return false;
+        $ret = new PSO(stream_get_contents($this->pipes[1]));
+        $this->close();
+        return $ret;
+    }
+
+    /**
+     * Ferme ce qui est ouvert
+     *
+     * @return PQO
+     */
+    public function close()
+    {
+        foreach($this->pipes as $h)
+            if (is_resource($h)) fclose($h);
+        foreach($this->descriptors as $h)
+            if (is_resource($h)) fclose($h);
+
+        $this->pipes = array();
+        if ($this->process)
+            $return_value = proc_close($this->process);
+
+        $this->process = null;
+
+        return $this;
+    }
+
+    /**
+     * arrete la commande
+     *
+     * @return PQO
+     */
+    public function stop()
+    {
+        if ($this->process) {
+            proc_terminate($this->process);
+        }
+        return $this;
+    }
+
+    /**
+     * test sie le process est en vie
+     *
+     * @return boolean
+     */
+    public function isAlive()
+    {
+        if (!$this->process) return false;
+        $infos = proc_get_status($this->process);
+        return $infos['running'];
+    }
+
 }

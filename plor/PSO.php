@@ -1,5 +1,5 @@
 <?php
-// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
+// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker :
 /**
  * PLOR
  *
@@ -36,6 +36,8 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
+
+require_once 'PSOStream.php';
 
 /**
  * a string facade in PHP
@@ -81,9 +83,10 @@ class PSO implements Countable
      * @param string
      * @return PSO
      */
-    public function exchange($content, $encoding = 'UTF-8') 
+    public function exchange($content = '', $encoding = 'UTF-8') 
     {
-        if (!is_null($content) and !is_string($content))
+        if (is_null($content)) $content = ''; // Pas de valeur null
+        if (!is_string($content))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         if (!is_string($encoding))
             trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($encoding).' given', E_USER_ERROR);
@@ -121,7 +124,7 @@ class PSO implements Countable
      */
     public function __toString()
     {
-        return $this->content;
+        return (string)$this->content;
     }
 
     /**
@@ -151,6 +154,19 @@ class PSO implements Countable
         return (boolean)$this->content;
     }
 
+     /**
+     * Convert class to Stream
+     * @return string
+     */
+    public function toURL($id = null)
+    {
+        if (is_null($id) or !is_string($id)) {
+            $id = uniqid();
+        }
+        PSOStream::$handles[$id] = $this;
+        return 'pso://'.$id;
+    }
+
     /**
      * isEmpty
      * @return boolean
@@ -160,15 +176,7 @@ class PSO implements Countable
         return ($this->content == '');
     }
 
-    /**
-     *  isNull
-     *  @return boolean
-     */
-    public function isNull()
-    {
-        return is_null($this->content);
-    }
-
+   
     /**
      * isEqual
      * @return boolean
@@ -213,9 +221,36 @@ class PSO implements Countable
      *  slice
      *  @return PSO
      */
-    public function slice($start, $length)
+    public function slice($start, $length = null)
     {
         $this->content = mb_substr($this->content, $start, $length, $this->encoding);
+        return $this;
+    }
+
+    /**
+     *  substr
+     *  @return new PSO
+     */
+    public function substr($start, $length = null)
+    {
+        return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
+    }
+
+    /**
+     *  concat
+     *  @return PSO
+     */
+    public function concat()
+    {
+        for($i = 0, $j = func_num_args(); $i < $j; $i++){
+            $a = func_get_arg($i);
+            if ($a instanceof PSO) {
+                $this->content .= $a->toString();
+            }
+            elseif (is_string($a)) {
+            $this->content .= $a;
+            }
+        }
         return $this;
     }
 
