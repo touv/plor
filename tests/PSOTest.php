@@ -120,4 +120,30 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
     public function test_urldecode()
     {
     }
+
+    public function test_fetch()
+    {
+        $this->s->exchange('Hello,How,Are,You,Today');
+        $entries = array();
+        while($entry = $this->s->fetch(',')) {
+            $entries[] = $entry;
+        }
+        $this->assertEquals(count($entries), 5);
+        $this->assertTrue($entries[0]->isEqual('Hello'));
+        $this->assertTrue($entries[1]->isEqual('How'));
+        $this->assertTrue($entries[2]->isEqual('Are'));
+        $this->assertTrue($entries[3]->isEqual('You'));
+        $this->assertTrue($entries[4]->isEqual('Today'));
+    }
+    public function test_fetchAll()
+    {
+        $this->s->exchange('Hello,How,Are,You,Today');
+        $entries = $this->s->fetchAll(',');
+        $this->assertEquals(count($entries), 5);
+        $this->assertTrue($entries->offsetGet(0)->isEqual('Hello'));
+        $this->assertTrue($entries->offsetGet(1)->isEqual('How'));
+        $this->assertTrue($entries->offsetGet(2)->isEqual('Are'));
+        $this->assertTrue($entries->offsetGet(3)->isEqual('You'));
+        $this->assertTrue($entries->offsetGet(4)->isEqual('Today'));
+    }
 }

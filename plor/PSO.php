@@ -53,7 +53,9 @@ class PSO implements Countable
     static public $funcs = array('ord');
 
     protected $content;
+    protected $size;
     protected $encoding;
+    protected $position = 0;
 
     /**
      * Constructor
@@ -92,6 +94,7 @@ class PSO implements Countable
             trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($encoding).' given', E_USER_ERROR);
         $this->content = $content;
         $this->encoding = $encoding;
+        $this->size = mb_strlen($this->content, $this->encoding);
         return $this;
     }
 
@@ -101,7 +104,7 @@ class PSO implements Countable
      */
     public function count()
     {
-        return mb_strlen($this->content, $this->encoding);
+        return $this->size;
     }
 
     /**
@@ -234,6 +237,46 @@ class PSO implements Countable
     public function substr($start, $length = null)
     {
         return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
+    }
+
+    /**
+     * Retourne une portion de chaine
+     *
+     * @return object
+     */
+    public function fetch($token = "\n")
+    {
+        $s = sizeof($token);
+        if ($this->position >= $this->size) {
+            $this->position = 0;
+            return false;
+        }
+        $p = mb_strpos($this->content, $token, $this->position, $this->encoding);
+        if ($p === false) {
+            $start = $this->position;
+            $length = $this->size - $this->position;
+            $this->position = $this->size;
+        }
+        else {
+            $start = $this->position;
+            $length = $p - $this->position;
+            $this->position = $p + $s;
+        }
+
+        return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
+    }
+
+    /**
+     * Retourne toute les lignes du résulat de la requete 
+     *
+     * @return ArrayObject
+     */
+    public function fetchAll($token = '\n')
+    {
+        $ret =  new ArrayObject();
+        while($entry = $this->fetch($token)) 
+            $ret->append($row);
+        return $ret;
     }
 
     /**
