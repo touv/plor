@@ -273,8 +273,8 @@ class PSO implements Countable
      */
     public function fetchAll($token = '\n')
     {
-        $ret =  new ArrayObject();
-        while($entry = $this->fetch($token)) 
+        $ret = new ArrayObject();
+        while($row = $this->fetch($token)) 
             $ret->append($row);
         return $ret;
     }
@@ -291,7 +291,7 @@ class PSO implements Countable
                 $this->content .= $a->toString();
             }
             elseif (is_string($a)) {
-            $this->content .= $a;
+                $this->content .= $a;
             }
         }
         return $this;
@@ -303,8 +303,8 @@ class PSO implements Countable
      */
     public function upper()
     {
-         $this->content = mb_convert_case($this->content, MB_CASE_UPPER, $this->encoding);
-         return $this;
+        $this->content = mb_convert_case($this->content, MB_CASE_UPPER, $this->encoding);
+        return $this;
     }
 
     /**
