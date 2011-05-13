@@ -51,11 +51,24 @@ var_dump($c->fetchAll()->toString());
 
 $c = CMD::factory('/usr/bin/curl', array('long_option_operator' => ' '))
     ->option('no-buffer')
-    ->option('request', 'GET', 0)
+    ->option('request', 'GET')
     ->param('http://www.google.com')
     ->fire();
 
 while($row = $c->fetch()) {
     echo $row;
 }
+
+
+
+
+
+$in = new PSO('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce lacinia placerat tortor auctor ultricies.');
+CMD::factory('/usr/bin/fmt')
+    ->option('width', '40')
+    ->bind(0, $in->toURL())
+    ->bind(1, $out->toURL())
+    ->fire();
+
+echo $out;
 

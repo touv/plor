@@ -6,8 +6,8 @@ Date: Wed, 11 May 2011 06:18:00 GMT
 Expires: -1
 Cache-Control: private, max-age=0
 Content-Type: text/html; charset=ISO-8859-1
-Set-Cookie: PREF=ID=2368bfdf697c34ec:FF=0:TM=1305094680:LM=1305094680:S=xUphhintK_StQ5m3; expires=Fri, 10-May-2013 06:18:00 GMT; path=/; domain=.google.fr
-Set-Cookie: NID=46=jiv8MFFltXU7qvedgO0mxJ0WeYYyCTGmJtSiosOUlg0Fl_Q2wzU785mDNU02B2-bSZfKzPWVLeQR8ULKFsCtUTJE4nGOqCBpST0C5HaOuYCMHCz0kGX-APWpc5XfBatY; expires=Thu, 10-Nov-2011 06:18:00 GMT; path=/; domain=.google.fr; HttpOnly
+Set-Cookie: PREF=ID1=A; expires=Fri, 10-May-2013 06:18:00 GMT; path=/; domain=.google.fr
+Set-Cookie: PREF=ID2=B; expires=Thu, 10-Nov-2011 06:18:00 GMT; path=/; domain=.google.fr; HttpOnly
 Server: gws
 X-XSS-Protection: 1; mode=block
 X-Cache: MISS from proxy.exemple.fr
@@ -54,36 +54,44 @@ echo $content;
 
 
 require_once '../plor/PSO.php';
-
 $s = new PSO($string);
-$headers = new ArrayObject;
-$start = $body = null;
+$request = new stdClass;
+$request->types = null;
+$request->headers = null;
+$request->body = null;
 while ($line = $s->fetch()) {
-    if (is_null($start)) {
-        $start = $line; 
+    if (is_null($request->types)) {
+        $request->types = $line;
     }    
-    elseif(is_null($body) and !$line->trim()->isEmpty()) {
+    elseif(is_null($request->body) and !$line->trim()->isEmpty()) {
         if (($name = $line->fetch(':')) and ($value = $line->fetch())) {
             $key = $name->lower()->toString();
-            if ($headers->offsetExists($key))
-                $headers->offsetGet($key)->concat(',')->concat($value);
+            if (isset($request->headers->$key))
+                $request->headers->{$key}[] = $value;
             else
-                $headers[$key] = $value;
+                $request->headers->$key = array($value);
         }
     }
-    elseif(is_null($body) and $line->trim()->isEmpty()) {
-        $body = $line;
+    elseif(is_null($request->body) and $line->trim()->isEmpty()) {
+        $request->body = $line;
     }
     else {
-        $body->concat($line)->concat("\n");
+        $request->body->concat($line)->concat("\n");
     }
 }
 
-echo $start;
+echo $request->types;
 echo "\n--------\n";
-foreach($headers as $k => $v) 
+foreach($request->headers as $k => $v) 
     echo $k,'=',$v,PHP_EOL;
 echo "\n--------\n";
-echo $body;
+echo $request->body;
 
+
+require_once '../plor/PRO.php';
+$i = new PRO($request);
+
+while ($item = $i->fetch()) {
+    $item->dump();
+}
 
