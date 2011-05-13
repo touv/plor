@@ -122,13 +122,16 @@ class PRO
             return false;
         }
         elseif ($cur === false and $this->depth > 0) {
+            array_pop($this->stack);
+            array_pop($this->names);
+            array_pop($this->types);
             --$this->depth;
             return $this->fetch();
         }
         $r = new PROItem;
         $r->name = key($this->stack[$this->depth]); 
-        $r->baseURI = '/'.implode($this->names, '/');
-        $r->uri   = rtrim($r->baseURI, '/').'/'.$r->name;
+        $r->baseURI = implode($this->names, ':');
+        $r->uri   = ltrim(rtrim($r->baseURI, ':').':'.$r->name, ':');
         $r->value = $cur; 
         $r->index = $this->position++;
         $r->type  = $this->getcase($cur);
