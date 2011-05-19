@@ -123,9 +123,9 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
 
     public function test_fetch()
     {
-        $this->s->exchange('Hello,How,Are,You,Today');
+        $this->s->exchange('Hello,How,Are,You,Today')->setEnding(',');
         $entries = array();
-        while($entry = $this->s->fetch(',')) {
+        while($entry = $this->s->fetch()) {
             $entries[] = $entry;
         }
         $this->assertEquals(count($entries), 5);
@@ -138,7 +138,7 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
     public function test_fetchAll()
     {
         $this->s->exchange('Hello,How,Are,You,Today');
-        $entries = $this->s->fetchAll(',');
+        $entries = $this->s->setEnding(',')->fetchAll();
         $this->assertEquals(count($entries), 5);
         $this->assertTrue($entries->offsetGet(0)->isEqual('Hello'));
         $this->assertTrue($entries->offsetGet(1)->isEqual('How'));

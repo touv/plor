@@ -3,7 +3,6 @@
 
 ini_set('include_path', dirname(__FILE__).'/../plor'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit/Framework.php';
 require_once 'PRO.php';
 
 class ProTest extends PHPUnit_Framework_TestCase
@@ -23,6 +22,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, '123');
+        $this->assertTrue($i->splice()->isEqual('123'));
     }
     function test_array2()
     {
@@ -33,6 +33,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, 'abc');
+        $this->assertTrue($i->splice()->isEqual('abc'));
     }
     function test_array3()
     {
@@ -43,6 +44,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, '123');
+        $this->assertTrue($i->splice()->isEqual('123'));
     }
     function test_array4()
     {
@@ -53,6 +55,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, '123456');
+        $this->assertTrue($i->splice()->isEqual('123456'));
     }
     function test_array5()
     {
@@ -67,6 +70,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, '123456');
+        $this->assertTrue($i->splice()->isEqual('123456'));
     }
     function test_array6()
     {
@@ -81,6 +85,7 @@ class ProTest extends PHPUnit_Framework_TestCase
             $h .= $row->value;
         }
         $this->assertEquals($h, '012345');
+        $this->assertTrue($i->splice()->isEqual('012345'));
     }
     function test_array7()
     {
@@ -95,6 +100,8 @@ class ProTest extends PHPUnit_Framework_TestCase
         }
         $this->assertEquals($h, '[][0][][]');
     }
+
+
 
 
 }

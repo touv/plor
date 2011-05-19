@@ -36,7 +36,9 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
+require_once 'Fetchor.php';
 require_once 'PSO.php';
+require_once 'PAO.php';
 
 /**
  * a shell facade in PHP
@@ -47,7 +49,7 @@ require_once 'PSO.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class CMD
+class CMD implements Fetchor
 {
     const STDIN  = 0;
     const STSOUT = 1;
@@ -66,6 +68,7 @@ class CMD
         'long_option_operator'   => '=',
         'short_option_size'      => 1,
     );
+    protected $ending = "\n";
 
     protected $command;
     protected $process;
@@ -236,6 +239,19 @@ class CMD
     }
 
     /**
+     * Fixe le sépérateur de ligne
+     *
+     * @return object
+     */
+    public function setEnding($s)
+    {
+        if (!is_string($s))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
+        $this->ending = $s;
+        return $this;
+    }
+
+    /**
      * Retourne une ligne du résulat de la commande
      *
      * @return PSO
@@ -248,10 +264,12 @@ class CMD
             $this->close();
             return false;
         }
-        if ( ! ($buf = fread($this->pipes[1], self::$buffersize))) {
+        $s = stream_get_line($this->pipes[1], self::$buffersize, $this->ending);
+        if ($s === false) {
+            $this->close();
             return false;
         }
-        return new PSO($buf, self::$encoding);
+        return new PSO($s, self::$encoding);
     }
 
     /**
@@ -261,9 +279,9 @@ class CMD
      */
     public function fetchAll()
     {
-        if (!$this->process and !is_resource($this->pipes[1])) return false;
-        $ret = new PSO(stream_get_contents($this->pipes[1]));
-        $this->close();
+        $ret = new PAO;
+        while($row = $this->fetch()) 
+            $ret->append($row);
         return $ret;
     }
 

@@ -37,6 +37,9 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
+require_once 'Fetchor.php';
+require_once 'PAO.php';
+
 /**
  * a PDOStatement facade in PHP
  *
@@ -47,7 +50,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-class PQO
+class PQO implements Fetchor
 {
     public static $encoding = 'UTF-8';
 
@@ -207,12 +210,12 @@ class PQO
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return ArrayObject
+     * @return PAO
      */
     public function fetchAll()
     {
         if (!$this->executed) return false;
-        $ret = new ArrayObject();
+        $ret = new PAO;
         while($row = $this->fetch())
             $ret->append($row);
         return $ret;

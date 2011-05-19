@@ -12,10 +12,10 @@
 		<email>nthouvenin@gmail.com</email>
 		<active>yes</active>
 	</lead>
-	<date>2011-05-03</date>
+	<date>2011-05-19</date>
 	<version>
-		<release>3.1.0</release>
-		<api>3.1.0</api>
+		<release>3.2.0</release>
+		<api>3.2.0</api>
 	</version>
 	<stability>
 		<release>stable</release>
@@ -27,8 +27,14 @@
 	</notes>
 	<contents>
 		<dir name="/">
-            <dir name="plor">
+			<dir name="plor">
+                <file name="CMD.php" role="php" />
+                <file name="Fetchor.php" role="php" />
+                <file name="PAO.php" role="php" />
+                <file name="PIO.php" role="php" />
                 <file name="PQO.php" role="php" />
+                <file name="PROItem.php" role="php" />
+                <file name="PRO.php" role="php" />
                 <file name="PRSHeaders.php" role="php" />
                 <file name="PRSInput.php" role="php" />
                 <file name="PRSParameters.php" role="php" />
@@ -36,7 +42,6 @@
                 <file name="PRSUrl.php" role="php" />
                 <file name="PSO.php" role="php" />
                 <file name="PSOStream.php" role="php" />
-                <file name="CMD.php" role="php" />
 			</dir>
 		</dir>
 	</contents>

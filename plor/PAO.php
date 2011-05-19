@@ -36,45 +36,31 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-
 require_once 'Fetchor.php';
-require_once 'PSO.php';
-require_once 'PAO.php';
-require_once 'PROItem.php';
+
 /**
- * a reader object
+ * a array facade in PHP
  *
- * @category  PRO
+ * @category  PAO
  * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PRO implements Fetchor
+class PAO implements Countable, Iterator, ArrayAccess, Fetchor
 {
-    protected $stack;
-    protected $types;
-    protected $names;
-    protected $depth = 0;
-    protected $position = 0;
-    protected $allowed_types = array('stdClass', 'array');
+    public static $encoding = 'UTF-8';
+ 
+    protected $content;
 
     /**
      * Constructor
      * @param string 
      * @param string
      */
-    public function __construct($content = null, $allowed_types = null)
+    public function __construct($content = array())
     {
-        $this->exchange($content, $allowed_types);
-    }
-
-    /**
-     * Destructor
-     */
-    public function __destruct()
-    {
-        $this->close();
+        $this->exchange($content);
     }
 
     /**
@@ -83,9 +69,9 @@ class PRO implements Fetchor
      * @param string
      * @return PSO
      */
-    public static function factory($content = null, $allowed_types = null)
+    public static function factory($content = array())
     {
-        return new PRO($content, $allowed_types);
+        return new PAO($content);
     }
 
     /**
@@ -95,18 +81,106 @@ class PRO implements Fetchor
      * @param string
      * @return PSO
      */
-    public function exchange($content = null, $allowed_types = null) 
+    public function exchange($content = array()) 
     {
-        $this->stack = array($content);
-        $this->types = array($this->_getcase($content));
-        $this->names = array();
-        $this->depth = 0;
-        $this->position = 0;
-        if (is_array($allowed_types))
-            $this->allowed_types = $allowed_types;
+        if (is_null($content)) $content = array(); // Pas de valeur null
+        if (!is_array($content))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a array, '.gettype($content).' given', E_USER_ERROR);
+        $this->content = $content;
         return $this;
     }
 
+    /**
+     * for Interface Countable
+     * @return integer
+     */
+    public function count()
+    {
+        return count($this->content);
+    }
+
+    /**
+     * for Interface Iterator
+     * @return boolean
+     */
+    public function valid()
+    {
+        return array_key_exists(key($this->content), $this->content);
+    }
+
+    /**
+     * for Interface Iterator
+     * @return boolean
+     */
+    public function next()
+    {
+        next($this->content);
+        return $this;
+    }
+
+    /**
+     * for Interface Iterator
+     * @return boolean
+     */
+    public function rewind()
+    {
+        reset($this->content);
+        return $this;
+    }
+
+    /**
+     * for Interface Iterator
+     * @return boolean
+     */
+    public function key()
+    {
+        return key($this->content);
+    }
+
+    /**
+     * for Interface Iterator
+     * @return boolean
+     */
+    public function current()
+    {
+        return current($this->content);
+    }
+
+    /**
+     * for Interface ArrayAccess
+     * @return boolean
+     */
+    public function offsetGet($offset)
+    {
+        return $this->content[$offset];
+    }
+
+    /**
+     * for Interface ArrayAccess
+     * @return boolean
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->content[$offset] = $value;
+    }
+
+    /**
+     * for Interface ArrayAccess
+     * @return boolean
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->content[$offset]);
+    }
+
+    /**
+     * for Interface ArrayAccess
+     * @return boolean
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->content[$offset]);
+    }
 
     /**
      * Use the class as string
@@ -114,7 +188,7 @@ class PRO implements Fetchor
      */
     public function __toString()
     {
-        return (string)$this->join()->toString();
+        return (string)$this->splice();
     }
 
     /**
@@ -123,7 +197,7 @@ class PRO implements Fetchor
      */
     public function toString()
     {
-        return (string)$this->join()->toString();
+        return (string)$this->splice();
     }
 
     /**
@@ -133,63 +207,50 @@ class PRO implements Fetchor
      */
     public function close()
     {
-        $this->position = 0;
-        foreach($this->stack as $k => $v)
-            reset($this->stack[$k]);
+        reset($this->content);
+        return $this;
+    }
+
+    /**
+     * ajout d'un élement
+     *
+     * @return object
+     */
+    public function append($value)
+    {
+        $this->content[] = $value;
+        return $this;
+    }
+
+    /**
+     * fixe un élement
+     *
+     * @return object
+     */
+    public function fix($key, $value)
+    {
+        if (!is_string($key))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
+
+        $this->content[$key] = $value;
         return $this;
     }
 
 
-    private function _getcase(&$o) 
-    {
-        if (is_object($o)) {
-            return get_class($o);
-        }
-        elseif (is_array($o)) {
-            return 'array';
-        }
-        else {
-            return null;
-        }
-    }
 
     /**
-     * Retourne une portion de chaine
+     * Retourne un élement
      *
      * @return object
      */
     public function fetch()
     {
-        $cur = current($this->stack[$this->depth]);
-        if ($cur === false and $this->depth == 0) {
+        $r = current($this->content);
+        if ($r === false) {
             $this->close();
             return false;
         }
-        elseif ($cur === false and $this->depth > 0) {
-            array_pop($this->stack);
-            array_pop($this->names);
-            array_pop($this->types);
-            --$this->depth;
-            return $this->fetch();
-        }
-        $r = new PROItem;
-        $r->name = key($this->stack[$this->depth]); 
-        $r->baseURI = implode($this->names, ':');
-        $r->uri   = ltrim(rtrim($r->baseURI, ':').':'.$r->name, ':');
-        $r->value = $cur; 
-        $r->index = $this->position++;
-        $r->type  = $this->_getcase($cur);
-        $r->depth = $this->depth;
-
-        next($this->stack[$this->depth]);
-        if ($r->type === $this->types[$this->depth] or in_array($r->type, $this->allowed_types)) {
-            ++$this->depth;
-            $this->stack[$this->depth] =& $cur;
-            reset($this->stack[$this->depth]);
-            $this->types[$this->depth] = $r->type;
-            $this->names[$this->depth] = $r->name;
-            return $this->fetch();
-        }
+        next($this->content);
         return $r;
     }
 
@@ -200,10 +261,7 @@ class PRO implements Fetchor
      */
     public function fetchAll()
     {
-        $ret = new PAO;
-        while($row = $this->fetch()) 
-            $ret->append($row);
-        return $ret;
+        return $this;
     }
 
     /**
@@ -213,12 +271,12 @@ class PRO implements Fetchor
      */
     public function splice($glue = null)
     {
-        $ret = new PSO;
+        $ret = new PSO('', self::$encoding);
         while($row = $this->fetch()) {
             if (!is_null($glue)) {
                 $ret->concat($glue);
             }
-            $ret->concat($row->value);
+            $ret->concat($row);
         }
         return $ret;
     }

@@ -37,6 +37,8 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
+require_once 'Fetchor.php';
+require_once 'PAO.php';
 require_once 'PSOStream.php';
 
 /**
@@ -48,9 +50,11 @@ require_once 'PSOStream.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PSO implements Countable
+class PSO implements Countable, Fetchor
 {
     static public $funcs = array('ord');
+
+    protected $ending = "\n";
 
     protected $content;
     protected $size;
@@ -95,6 +99,7 @@ class PSO implements Countable
         $this->content = $content;
         $this->encoding = $encoding;
         $this->size = mb_strlen($this->content, $this->encoding);
+        $this->close();
         return $this;
     }
 
@@ -239,19 +244,33 @@ class PSO implements Countable
         return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
     }
 
+
+    /**
+     * Fixe le sépérateur de ligne
+     *
+     * @return object
+     */
+    public function setEnding($s)
+    {
+        if (!is_string($s))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
+        $this->ending = $s;
+        return $this;
+    }
+
     /**
      * Retourne une portion de chaine
      *
      * @return object
      */
-    public function fetch($token = "\n")
+    public function fetch()
     {
-        $s = sizeof($token);
+        $s = sizeof($this->ending);
         if ($this->position >= $this->size) {
-            $this->position = 0;
+            $this->close();
             return false;
         }
-        $p = mb_strpos($this->content, $token, $this->position, $this->encoding);
+        $p = mb_strpos($this->content, $this->ending, $this->position, $this->encoding);
         if ($p === false) {
             $start = $this->position;
             $length = $this->size - $this->position;
@@ -269,15 +288,27 @@ class PSO implements Countable
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return ArrayObject
+     * @return PAO
      */
-    public function fetchAll($token = '\n')
+    public function fetchAll()
     {
-        $ret = new ArrayObject();
-        while($row = $this->fetch($token)) 
+        $ret = new PAO();
+        while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;
     }
+
+    /**
+     * Ferme le cursor
+     *
+     * @return PAO
+     */
+    public function close()
+    {
+        $this->position = 0;
+        return $this;
+    }
+
 
     /**
      *  concat
@@ -292,6 +323,9 @@ class PSO implements Countable
             }
             elseif (is_string($a)) {
                 $this->content .= $a;
+            }
+            else {
+                $this->content .= strval($a);
             }
         }
         return $this;

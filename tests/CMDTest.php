@@ -3,7 +3,6 @@
 
 ini_set('include_path', dirname(__FILE__).'/../plor'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit/Framework.php';
 require_once 'CMD.php';
 
 
@@ -75,7 +74,7 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
             ->bind(2, '/dev/null')
             ->fire();
 
-        for ($s = ''; $b = $c->fetch(); $s .= $b);
-        $this->assertTrue(strpos($s, '</script>') !== false);
+        for ($s = new PSO; $b = $c->fetch(); $s->concat($b));
+        $this->assertTrue($s->contains('</script>'));
     }
 }
