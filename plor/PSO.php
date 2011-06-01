@@ -37,6 +37,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
+require_once 'Dumpable.php';
 require_once 'Fetchor.php';
 require_once 'DAT.php';
 require_once 'PSOStream.php';
@@ -50,7 +51,7 @@ require_once 'PSOStream.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PSO implements Countable, Fetchor
+class PSO implements Countable, Fetchor, Dumpable
 {
     static public $funcs = array('ord');
 
@@ -143,6 +144,17 @@ class PSO implements Countable, Fetchor
     {
         return (string)$this->content;
     }
+
+    /**
+     * Dump content of the class
+     * @return PSO
+     */
+    public function dump($s = null)
+    {
+        echo $this->toString(), $s;
+        return $this;
+    }
+
 
     /**
      * Convert class to string

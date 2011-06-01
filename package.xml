@@ -30,11 +30,10 @@
 			<dir name="plor">
                 <file name="CMD.php" role="php" />
                 <file name="Fetchor.php" role="php" />
-                <file name="PAO.php" role="php" />
+                <file name="Dumpable.php" role="php" />
+                <file name="DAT.php" role="php" />
                 <file name="PIO.php" role="php" />
                 <file name="PQO.php" role="php" />
-                <file name="PROItem.php" role="php" />
-                <file name="PRO.php" role="php" />
                 <file name="PRSHeaders.php" role="php" />
                 <file name="PRSInput.php" role="php" />
                 <file name="PRSParameters.php" role="php" />

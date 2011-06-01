@@ -37,6 +37,8 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
+require_once 'Fetchor.php';
+require_once 'Dumpable.php';
 require_once 'PSO.php';
 
 /**
@@ -48,7 +50,7 @@ require_once 'PSO.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class DAT implements Fetchor, Countable
+class DAT implements Fetchor, Countable, Dumpable
 {
     private $__reader;
     private $__size;
@@ -195,19 +197,15 @@ class DAT implements Fetchor, Countable
         return (string)$this->splice(',')->toString();
     }
 
-
     /**
      * Dump content of the class
-     * @return string
+     * @return DAT
      */
     public function dump($s = null)
     {
         echo $this->toString(), $s;
         return $this;
     }
-
-
-
 
     /**
      * Ferme le curseur courant 

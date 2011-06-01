@@ -37,6 +37,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 require_once 'Fetchor.php';
+require_once 'Dumpable.php';
 require_once 'PSO.php';
 require_once 'DAT.php';
 
@@ -49,7 +50,7 @@ require_once 'DAT.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class CMD implements Fetchor
+class CMD implements Fetchor, Dumpable
 {
     const STDIN  = 0;
     const STSOUT = 1;
@@ -144,6 +145,16 @@ class CMD implements Fetchor
     public function toString()
     {
         return (string)$this->command;
+    }
+ 
+    /**
+     * Dump content of the class
+     * @return CMD
+     */
+    public function dump($s = null)
+    {
+        echo $this->toString(), $s;
+        return $this;
     }
 
     /**
