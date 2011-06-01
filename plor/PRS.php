@@ -1,7 +1,7 @@
 <?php
 // vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * P3C
+ * PLOR
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -31,7 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  PRS
- * @package   P3C
+ * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
@@ -45,7 +45,7 @@ require_once 'PRSInput.php';
  * a simple REST Server in PHP
  *
  * @category  PRS
- * @package   P3C
+ * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
