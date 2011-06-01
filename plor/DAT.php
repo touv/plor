@@ -52,6 +52,7 @@ require_once 'PSO.php';
  */
 class DAT implements Fetchor, Countable, Dumpable
 {
+    private $__encoding = 'UTF-8';
     private $__reader;
     private $__size;
 
@@ -96,7 +97,7 @@ class DAT implements Fetchor, Countable, Dumpable
 
         if (!is_null($content)) {
             if (in_array($this->_getcase($content), $this->__reader->allowed_types)) {
-                $this->root = $content;
+                $this->root = $this->_checkval($content);
                 $this->__size  = count($this->fetchAll());
             }
             else {
@@ -127,13 +128,13 @@ class DAT implements Fetchor, Countable, Dumpable
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         if (!isset($this->{$k})) {
-            $this->{$k} = array($v);
+            $this->{$k} = array($this->_checkval($v));
         }
         elseif (!is_array($this->{$k})) {
-            $this->{$k} = array($this->{$k}, $v);
+            $this->{$k} = array($this->{$k}, $this->_checkval($v));
         }
         else {
-            $this->{$k}[] = $v;
+            $this->{$k}[] = $this->_checkval($v);
         }
         ++$this->__size;
         return $this;
@@ -148,7 +149,7 @@ class DAT implements Fetchor, Countable, Dumpable
         if (!is_string($k))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
-        $this->{$k} = $v;
+        $this->{$k} = $this->_checkval($v);
         ++$this->__size;
         return $this;
     }
@@ -160,10 +161,10 @@ class DAT implements Fetchor, Countable, Dumpable
     public function append($v)
     {
         if (!isset($this->root)) {
-            $this->root = array($v);
+            $this->root = array($this->_checkval($v));
         }
         else {
-            $this->root[] = $v;
+            $this->root[] = $this->_checkval($v);
         }
         ++$this->__size;
         return $this;
@@ -208,6 +209,19 @@ class DAT implements Fetchor, Countable, Dumpable
     }
 
     /**
+     * set string encoding
+     * @return DAT
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        return $this;
+    }
+
+
+    /**
      * Ferme le curseur courant 
      *
      * @return PQO
@@ -223,16 +237,42 @@ class DAT implements Fetchor, Countable, Dumpable
 
     private function _getcase(&$o) 
     {
-        if (is_object($o)) {
+        if ($o instanceof PSO) {
+            return 'PSO';
+        }
+        elseif ($o instanceof DAT) {
+            return 'DAT';
+        }
+        elseif (is_object($o)) {
             return get_class($o);
         }
         elseif (is_array($o)) {
             return 'array';
         }
+        elseif (is_string($o)) {
+            return 'string';
+        }
+        elseif (is_int($o) or is_float($o)) {
+            return 'numeric';
+        }
         else {
             return null;
         }
     }
+    private function _checkval($v) 
+    {
+        $type = $this->_getcase($v);
+        if ($type == 'PSO'  or in_array($type, $this->__reader->allowed_types)) {
+            return $v;
+        }
+        elseif ($type == 'string') {
+            return PSO::factory($v)->fixEncoding($this->__encoding);
+        }
+        elseif ($type == 'numeric') {
+            return $v;
+        }
+    }
+
 
     /**
      * Retourne une portion de chaine

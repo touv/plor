@@ -37,8 +37,10 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'Dumpable.php';
 require_once 'Fetchor.php';
+require_once 'Dumpable.php';
+require_once 'Encoding.php';
+
 require_once 'DAT.php';
 require_once 'PSOStream.php';
 
@@ -51,15 +53,16 @@ require_once 'PSOStream.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PSO implements Countable, Fetchor, Dumpable
+class PSO implements Countable, Fetchor, Dumpable, Encoding
 {
+    protected $__encoding = 'UTF-8';
+
     static public $funcs = array('ord');
 
     protected $ending = "\n";
 
     protected $content;
     protected $size;
-    protected $encoding;
     protected $position = 0;
 
     /**
@@ -67,9 +70,9 @@ class PSO implements Countable, Fetchor, Dumpable
      * @param string 
      * @param string
      */
-    public function __construct($content = '', $encoding = 'UTF-8')
+    public function __construct($content = '')
     {
-        $this->exchange($content, $encoding);
+        $this->exchange($content);
     }
 
     /**
@@ -78,9 +81,9 @@ class PSO implements Countable, Fetchor, Dumpable
      * @param string
      * @return PSO
      */
-    public static function factory($content = '', $encoding = 'UTF-8')
+    public static function factory($content = '')
     {
-        return new PSO($content, $encoding);
+        return new PSO($content);
     }
 
     /**
@@ -90,19 +93,31 @@ class PSO implements Countable, Fetchor, Dumpable
      * @param string
      * @return PSO
      */
-    public function exchange($content = '', $encoding = 'UTF-8') 
+    public function exchange($content = '') 
     {
         if (is_null($content)) $content = ''; // Pas de valeur null
         if (!is_string($content))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
-        if (!is_string($encoding))
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($encoding).' given', E_USER_ERROR);
         $this->content = $content;
-        $this->encoding = $encoding;
-        $this->size = mb_strlen($this->content, $this->encoding);
+        $this->size = mb_strlen($this->content);
         $this->close();
         return $this;
     }
+
+    /**
+     * set string encoding
+     * @param string
+     * @return PSO
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        $this->size = mb_strlen($this->content, $e);
+        return $this;
+    }
+
 
    /**
      * define by Countable interface
@@ -224,7 +239,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function contains($needle, $offset = 0)
     {
-        return (mb_strpos($this->content, $needle, $offset, $this->encoding) !== false);
+        return (mb_strpos($this->content, $needle, $offset, $this->__encoding) !== false);
     }
 
     /**
@@ -243,7 +258,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function slice($start, $length = null)
     {
-        $this->content = mb_substr($this->content, $start, $length, $this->encoding);
+        $this->content = mb_substr($this->content, $start, $length, $this->__encoding);
         return $this;
     }
 
@@ -253,7 +268,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function substr($start, $length = null)
     {
-        return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
+        return PSO::factory(mb_substr($this->content, $start, $length, $this->__encoding))->fixEncoding($this->__encoding);
     }
 
 
@@ -282,7 +297,7 @@ class PSO implements Countable, Fetchor, Dumpable
             $this->close();
             return false;
         }
-        $p = mb_strpos($this->content, $this->ending, $this->position, $this->encoding);
+        $p = mb_strpos($this->content, $this->ending, $this->position, $this->__encoding);
         if ($p === false) {
             $start = $this->position;
             $length = $this->size - $this->position;
@@ -294,7 +309,7 @@ class PSO implements Countable, Fetchor, Dumpable
             $this->position = $p + $s;
         }
 
-        return new PSO(mb_substr($this->content, $start, $length, $this->encoding), $this->encoding);
+        return PSO::factory(mb_substr($this->content, $start, $length, $this->__encoding))->fixEncoding($this->__encoding);
     }
 
     /**
@@ -349,7 +364,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function upper()
     {
-        $this->content = mb_convert_case($this->content, MB_CASE_UPPER, $this->encoding);
+        $this->content = mb_convert_case($this->content, MB_CASE_UPPER, $this->__encoding);
         return $this;
     }
 
@@ -359,7 +374,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function lower()
     {
-        $this->content = mb_convert_case($this->content, MB_CASE_LOWER, $this->encoding);
+        $this->content = mb_convert_case($this->content, MB_CASE_LOWER, $this->__encoding);
         return $this;
     }
     /**
@@ -368,7 +383,7 @@ class PSO implements Countable, Fetchor, Dumpable
      */
     public function title()
     {
-        $this->content = mb_convert_case($this->content, MB_CASE_TITLE, $this->encoding);
+        $this->content = mb_convert_case($this->content, MB_CASE_TITLE, $this->__encoding);
         return $this;
     }
 

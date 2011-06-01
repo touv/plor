@@ -1,5 +1,5 @@
 <?php
-// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
+// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker :
 /**
  * PLOR
  *
@@ -37,6 +37,8 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
+require_once 'Encoding.php';
+
 /**
  * A REST Parameter
  *
@@ -46,9 +48,9 @@
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PRSParameters implements ArrayAccess 
+class PRSParameters implements ArrayAccess, Encoding 
 { 
-    public static $encoding = 'UTF-8';
+    protected $__encoding = 'UTF-8';
     protected static $instance;
     protected $parameters = array();
     protected $content = array();
@@ -85,6 +87,20 @@ class PRSParameters implements ArrayAccess
             }
         }
     }
+
+    /**
+     * set string encoding
+     * @param string 
+     * @return PRSParameters
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        return $this;
+    }
+
 
     /**
      * @see Magic
@@ -129,12 +145,12 @@ class PRSParameters implements ArrayAccess
         if (isset($this->parameters[$offset])) {
             foreach($this->parameters[$offset] as $p) {
                 if (is_string($p) and isset($_REQUEST[$p])) {
-                    return (is_string($_REQUEST[$p]) ? PSO::factory($_REQUEST[$p], self::$encoding) : $_REQUEST[$p]);
+                    return (is_string($_REQUEST[$p]) ? PSO::factory($_REQUEST[$p])->fixEncoding($this->__encoding) : $_REQUEST[$p]);
                 }
             }
         }
         elseif (isset($this->content[$offset])) {
-            return (is_string($this->content[$offset]) ? PSO::factory($this->content[$offset], self::$encoding) : $this->content[$offset]);
+            return (is_string($this->content[$offset]) ? PSO::factory($this->content[$offset])->fixEncoding($this->__encoding) : $this->content[$offset]);
         }
         return null;
     }

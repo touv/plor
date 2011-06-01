@@ -38,6 +38,7 @@
  */
 
 require_once 'Fetchor.php';
+require_once 'Encoding.php';
 require_once 'DAT.php';
 
 /**
@@ -50,10 +51,9 @@ require_once 'DAT.php';
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-class PQO implements Fetchor
+class PQO implements Fetchor, Encoding
 {
-    public static $encoding = 'UTF-8';
-
+    protected $__encoding = 'UTF-8';
     protected static $queries = array();
 
     private $statement;
@@ -99,6 +99,19 @@ class PQO implements Fetchor
         $this->close();
         $this->query = $query;
         $this->statement = $pdo->prepare($query);
+        return $this;
+    }
+
+    /**
+     * set string encoding
+     * @param string 
+     * @return PQO
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
         return $this;
     }
 
@@ -203,7 +216,7 @@ class PQO implements Fetchor
         }
         $ret = new stdClass;
         foreach($row as $k => $v) 
-            $ret->$k = new PSO($v, self::$encoding);
+            $ret->$k = PSO::factory($v)->fixEncoding($this->__encoding);
         return $ret;
     }
 

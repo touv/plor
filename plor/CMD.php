@@ -37,6 +37,7 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 require_once 'Fetchor.php';
+require_once 'Encoding.php';
 require_once 'Dumpable.php';
 require_once 'PSO.php';
 require_once 'DAT.php';
@@ -50,8 +51,10 @@ require_once 'DAT.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class CMD implements Fetchor, Dumpable
+class CMD implements Fetchor, Dumpable, Encoding
 {
+    protected $__encoding = 'UTF-8';
+
     const STDIN  = 0;
     const STSOUT = 1;
     const STDERR = 2;
@@ -59,7 +62,6 @@ class CMD implements Fetchor, Dumpable
     const OPT_MINUS = 2;
     const OPT_QUOTE = 4;
 
-    public static $encoding = 'UTF-8';
     public static $buffersize = 8192;
 
     protected $options = array(
@@ -130,6 +132,20 @@ class CMD implements Fetchor, Dumpable
 
 
     /**
+     * set string encoding
+     * @param string
+     * @return CMD
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        return $this;
+    }
+
+
+    /**
      * Use the class as string
      * @return string
      */
@@ -146,7 +162,7 @@ class CMD implements Fetchor, Dumpable
     {
         return (string)$this->command;
     }
- 
+
     /**
      * Dump content of the class
      * @return CMD
@@ -227,24 +243,24 @@ class CMD implements Fetchor, Dumpable
     public function fire()
     {
         $this->process = proc_open($this->command, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
- 
+
         foreach($this->descriptors as $k => $descriptor) 
-        if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {
-            if ($k == 0) {
-                $src = $this->descriptors[$k];
-                $dst = $this->pipes[$k];
+            if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {
+                if ($k == 0) {
+                    $src = $this->descriptors[$k];
+                    $dst = $this->pipes[$k];
+                }
+                else {
+                    $src = $this->pipes[$k];
+                    $dst = $this->descriptors[$k];
+                }
+                while (!feof($src)) {
+                    fwrite($dst,fread($src, self::$buffersize));
+                }
+                fclose($src);
+                fclose($dst);
+                $this->descriptors[$k] = null;
             }
-            else {
-                $src = $this->pipes[$k];
-                $dst = $this->descriptors[$k];
-            }
-            while (!feof($src)) {
-                fwrite($dst,fread($src, self::$buffersize));
-            }
-            fclose($src);
-            fclose($dst);
-            $this->descriptors[$k] = null;
-        }
 
         return $this;
     }
@@ -280,7 +296,7 @@ class CMD implements Fetchor, Dumpable
             $this->close();
             return false;
         }
-        return new PSO($s, self::$encoding);
+        return PSO::factory($s)->fixEncoding($this->__encoding);
     }
 
     /**

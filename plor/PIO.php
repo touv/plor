@@ -38,6 +38,7 @@
  */
 
 require_once 'Fetchor.php';
+require_once 'Encoding.php';
 require_once 'PSO.php';
 require_once 'DAT.php';
 
@@ -50,9 +51,9 @@ require_once 'DAT.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PIO implements Fetchor
+class PIO implements Fetchor, Encoding
 {
-    public static $encoding = 'UTF-8';
+    protected $__encoding = 'UTF-8';
     public static $buffersize = 8192;
 
     protected $ending = "\n";
@@ -108,6 +109,20 @@ class PIO implements Fetchor
     }
 
     /**
+     * set string encoding
+     * @param string
+     * @return PIO
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        return $this;
+    }
+
+
+    /**
      * Fixe le sépérateur de ligne
      *
      * @return object
@@ -140,7 +155,7 @@ class PIO implements Fetchor
             $this->close();
             return false;
         }
-        return new PSO($s, self::$encoding);
+        return PSO::factory($s)->fixEncoding($this->__encoding);
     }
 
     /**
