@@ -38,7 +38,6 @@
  */
 
 require_once 'PSO.php';
-require_once 'PRO.php';
 
 /**
  * a Array & stdClass facade in PHP
@@ -49,9 +48,10 @@ require_once 'PRO.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class DAT implements Fetchor
+class DAT implements Fetchor, Countable
 {
     private $__reader;
+    private $__size;
 
     /**
      * Constructor
@@ -90,19 +90,30 @@ class DAT implements Fetchor
         $this->__reader->depth = 0;
         $this->__reader->position = 0;
         $this->__reader->allowed_types = array('DAT', 'array');
+        $this->__size = 0;
 
         if (!is_null($content)) {
             if (in_array($this->_getcase($content), $this->__reader->allowed_types)) {
                 $this->root = $content;
+                $this->__size  = count($this->fetchAll());
             }
             else {
                 trigger_error('Argument 1 passed to '.__METHOD__.' must be a allowed type, '.gettype($content).' given', E_USER_ERROR);
             }
         }
 
+
         return $this;
     }
 
+    /**
+     * define by Countable interface
+     * @return integer
+     */
+    public function count()
+    {
+        return $this->__size;
+    }
 
     /**
      * add
@@ -122,6 +133,7 @@ class DAT implements Fetchor
         else {
             $this->{$k}[] = $v;
         }
+        ++$this->__size;
         return $this;
     }
 
@@ -135,6 +147,7 @@ class DAT implements Fetchor
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         $this->{$k} = $v;
+        ++$this->__size;
         return $this;
     }
 
@@ -144,12 +157,13 @@ class DAT implements Fetchor
      */
     public function append($v)
     {
-        if (is_null($this->root)) {
+        if (!isset($this->root)) {
             $this->root = array($v);
         }
         else {
-            $this->root[0] = $v;
+            $this->root[] = $v;
         }
+        ++$this->__size;
         return $this;
     }
 
@@ -272,11 +286,11 @@ class DAT implements Fetchor
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return PAO
+     * @return DAT
      */
     public function fetchAll()
     {
-        $ret = new PAO;
+        $ret = new DAT;
         while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;

@@ -38,7 +38,7 @@
  */
 
 require_once 'Fetchor.php';
-require_once 'PAO.php';
+require_once 'DAT.php';
 require_once 'PSOStream.php';
 
 /**
@@ -104,7 +104,7 @@ class PSO implements Countable, Fetchor
     }
 
    /**
-     * Use the class as string
+     * define by Countable interface
      * @return integer
      */
     public function count()
@@ -288,11 +288,11 @@ class PSO implements Countable, Fetchor
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return PAO
+     * @return DAT
      */
     public function fetchAll()
     {
-        $ret = new PAO();
+        $ret = new DAT();
         while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;
@@ -301,7 +301,7 @@ class PSO implements Countable, Fetchor
     /**
      * Ferme le cursor
      *
-     * @return PAO
+     * @return PSO
      */
     public function close()
     {

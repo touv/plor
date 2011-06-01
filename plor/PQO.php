@@ -38,7 +38,7 @@
  */
 
 require_once 'Fetchor.php';
-require_once 'PAO.php';
+require_once 'DAT.php';
 
 /**
  * a PDOStatement facade in PHP
@@ -210,12 +210,12 @@ class PQO implements Fetchor
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return PAO
+     * @return DAT
      */
     public function fetchAll()
     {
         if (!$this->executed) return false;
-        $ret = new PAO;
+        $ret = new DAT;
         while($row = $this->fetch())
             $ret->append($row);
         return $ret;

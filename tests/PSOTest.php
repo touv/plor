@@ -140,10 +140,10 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
         $this->s->exchange('Hello,How,Are,You,Today');
         $entries = $this->s->setEnding(',')->fetchAll();
         $this->assertEquals(count($entries), 5);
-        $this->assertTrue($entries->offsetGet(0)->isEqual('Hello'));
-        $this->assertTrue($entries->offsetGet(1)->isEqual('How'));
-        $this->assertTrue($entries->offsetGet(2)->isEqual('Are'));
-        $this->assertTrue($entries->offsetGet(3)->isEqual('You'));
-        $this->assertTrue($entries->offsetGet(4)->isEqual('Today'));
+        $this->assertTrue($entries->root[0]->isEqual('Hello'));
+        $this->assertTrue($entries->root[1]->isEqual('How'));
+        $this->assertTrue($entries->root[2]->isEqual('Are'));
+        $this->assertTrue($entries->root[3]->isEqual('You'));
+        $this->assertTrue($entries->root[4]->isEqual('Today'));
     }
 }

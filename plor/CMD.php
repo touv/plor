@@ -38,7 +38,7 @@
  */
 require_once 'Fetchor.php';
 require_once 'PSO.php';
-require_once 'PAO.php';
+require_once 'DAT.php';
 
 /**
  * a shell facade in PHP
@@ -279,7 +279,7 @@ class CMD implements Fetchor
      */
     public function fetchAll()
     {
-        $ret = new PAO;
+        $ret = new DAT;
         while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;
