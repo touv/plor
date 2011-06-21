@@ -39,6 +39,7 @@
 
 require_once 'Fetchor.php';
 require_once 'Dumpable.php';
+require_once 'Encoding.php';
 require_once 'PSO.php';
 
 /**
@@ -50,7 +51,7 @@ require_once 'PSO.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class DAT implements Fetchor, Countable, Dumpable
+class DAT implements Fetchor, Countable, Dumpable, Encoding
 {
     private $__encoding = 'UTF-8';
     private $__reader;
@@ -127,6 +128,8 @@ class DAT implements Fetchor, Countable, Dumpable
         if (!is_string($k))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
+        $k = self::normalizeKey($k);
+
         if (!isset($this->{$k})) {
             $this->{$k} = array($this->_checkval($v));
         }
@@ -149,6 +152,7 @@ class DAT implements Fetchor, Countable, Dumpable
         if (!is_string($k))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
+        $k = self::normalizeKey($k);
         $this->{$k} = $this->_checkval($v);
         ++$this->__size;
         return $this;
@@ -350,6 +354,19 @@ class DAT implements Fetchor, Countable, Dumpable
         }
         return $ret;
     }
+
+
+    /**
+     * set
+     * @return DAT
+     */
+    static public function normalizeKey($k)
+    {
+        $k = trim(preg_replace('/[^A-Za-z0-9_]/', '_', (string) $k), '_');
+        $k = preg_replace('/^([0-9])/', '_\\1', $k);
+        return $k;
+    }
+
 
 }
 

@@ -226,7 +226,7 @@ class PRSUrl
         $method = $this->input->method();
         $parameters = PRSParameters::singleton();
         foreach($this->constants as $constant => $value) {
-            $parameters[$constant] = $value;
+            $parameters->{$parameters::normalizeKey($constant)} = $value;
         }
         $parameters->__sections = new ArrayObject($this->sections);
         $parameters->__server   = $this->input;

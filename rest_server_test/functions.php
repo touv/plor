@@ -3,7 +3,6 @@
 function list_of_projects_in_xml($p, $h)
 {
     global $datas;
-
     $h->add('content-type', 'text/xml');
     echo '<projects>';
     foreach($datas['projects'] as $project_id => $projet)  {

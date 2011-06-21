@@ -1,5 +1,5 @@
 <?php
-set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/../lib' );
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/../plor' );
 
 // Load datas
 $datas = file_exists('data.txt') ? unserialize(file_get_contents('data.txt')) : null;
