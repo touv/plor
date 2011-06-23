@@ -53,7 +53,7 @@ require_once 'PSO.php';
  */
 class DAT implements Fetchor, Countable, Dumpable, Encoding
 {
-    private $__encoding = 'UTF-8';
+    protected $__encoding = 'UTF-8';
     private $__reader;
     private $__size;
 
@@ -224,7 +224,6 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
         return $this;
     }
 
-
     /**
      * Ferme le curseur courant 
      *
@@ -322,7 +321,8 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
             $this->__reader->names[$this->__reader->depth] = $r->name;
             return $this->fetch();
         }
-        return $r;
+//        return $r;
+        return $cur;
     }
 
     /**
@@ -346,11 +346,11 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
     public function splice($glue = null)
     {
         $ret = new PSO;
-        while($row = $this->fetch()) {
+        while(($row = $this->fetch()) !== false) {
             if (!is_null($glue)) {
                 $ret->concat($glue);
             }
-            $ret->concat($row->value);
+            $ret->concat($row);
         }
         return $ret;
     }

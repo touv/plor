@@ -41,7 +41,7 @@ require_once 'Fetchor.php';
 require_once 'Dumpable.php';
 require_once 'Encoding.php';
 
-require_once 'DAT.php';
+require_once 'PSOVector.php';
 require_once 'PSOStream.php';
 
 /**
@@ -315,11 +315,11 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return DAT
+     * @return PSOVector
      */
     public function fetchAll()
     {
-        $ret = new DAT();
+        $ret = new PSOVector();
         while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;

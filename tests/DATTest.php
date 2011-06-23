@@ -23,8 +23,8 @@ class DATTest extends PHPUnit_Framework_TestCase
 
 //        printf("%s %s %6s %-20s %s %s\n", 'index', 'depth', 'type', 'name', 'uri', 'value');
         while($row = $i->fetch()) {
-            $h .= $row->value;
-//            printf("%5d %5d %6s %-20s %s %s\n", $r->index, $r->depth, $r->type, $r->name, $r->uri, $r->value);
+            $h .= $row;
+//            printf("%5d %5d %6s %-20s %s %s\n", $r->index, $r->depth, $r->type, $r->name, $r->uri, $r);
         }
         $this->assertEquals($h, '1234567890');
         $this->assertTrue($i->splice()->isEqual('1234567890'));
@@ -36,7 +36,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, '123');
         $this->assertTrue($i->splice()->isEqual('123'));
@@ -48,7 +48,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, 'abc');
         $this->assertTrue($i->splice()->isEqual('abc'));
@@ -59,7 +59,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, '123');
         $this->assertTrue($i->splice()->isEqual('123'));
@@ -70,7 +70,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, '123456');
         $this->assertTrue($i->splice()->isEqual('123456'));
@@ -85,7 +85,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, '123456');
         $this->assertTrue($i->splice()->isEqual('123456'));
@@ -100,7 +100,7 @@ class DATTest extends PHPUnit_Framework_TestCase
         $h = '';
         $i = new DAT($d);
         while($row = $i->fetch()) {
-            $h .= $row->value;
+            $h .= $row;
         }
         $this->assertEquals($h, '012345');
         $this->assertTrue($i->splice()->isEqual('012345'));
@@ -113,13 +113,23 @@ class DATTest extends PHPUnit_Framework_TestCase
 
         $h = '';
         $i = new DAT($d);
-        while($row = $i->fetch()) {
-            $h .= '['.$row->value.']';
+        while(($row = $i->fetch()) !== false) {
+            var_dump($row);
+            $h .= '['.$row.']';
         }
         $this->assertEquals($h, '[][0][][]');
     }
-
-
+  
+    function test_array8()
+    {
+        $h = '';
+        $i = new DAT;
+        $i->append(1)->append(2)->append(3)->append(4)->append(5);
+        while(($row = $i->fetch()) !== false) {
+            $h .= $row;
+        }
+        $this->assertEquals($h, '12345');
+    }
 
 
 }

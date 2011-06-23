@@ -224,9 +224,9 @@ class PRSUrl
         if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        $parameters = PRSParameters::singleton();
+        $parameters = PRSParameters::factory();
         foreach($this->constants as $constant => $value) {
-            $parameters->{$parameters::normalizeKey($constant)} = $value;
+            $parameters->set($constant, PSO::factory($value));
         }
         $parameters->__sections = new ArrayObject($this->sections);
         $parameters->__server   = $this->input;

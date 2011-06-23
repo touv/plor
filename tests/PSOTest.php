@@ -5,7 +5,7 @@ ini_set('include_path', dirname(__FILE__).'/../plor'.PATH_SEPARATOR.ini_get('inc
 
 require_once 'PSO.php';
 
-class PSOStreamTest extends PHPUnit_Framework_TestCase
+class PSOTest extends PHPUnit_Framework_TestCase
 {
     protected $s;
     function setUp()
@@ -139,10 +139,10 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
         $this->s->exchange('Hello,How,Are,You,Today');
         $entries = $this->s->setEnding(',')->fetchAll();
         $this->assertEquals(count($entries), 5);
-        $this->assertTrue($entries->root[0]->isEqual('Hello'));
-        $this->assertTrue($entries->root[1]->isEqual('How'));
-        $this->assertTrue($entries->root[2]->isEqual('Are'));
-        $this->assertTrue($entries->root[3]->isEqual('You'));
-        $this->assertTrue($entries->root[4]->isEqual('Today'));
+        $this->assertTrue($entries->fetch()->isEqual('Hello'));
+        $this->assertTrue($entries->fetch()->isEqual('How'));
+        $this->assertTrue($entries->fetch()->isEqual('Are'));
+        $this->assertTrue($entries->fetch()->isEqual('You'));
+        $this->assertTrue($entries->fetch()->isEqual('Today'));
     }
 }

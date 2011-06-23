@@ -1,7 +1,7 @@
 <?php
-// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker :
+// vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 fdm=marker encoding=utf8 :
 /**
- * PLOR
+ * P3C
  *
  * Copyright (c) 2010, Nicolas Thouvenin
  *
@@ -31,61 +31,138 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @category  PRS
-
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-
-require_once 'DAT.php';
 
 /**
  * A REST Parameter
  *
  * @category  PRS
- * @package   PLOR
+ * @package   P3C
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PRSParameters extends DAT
+class PRSParameters implements ArrayAccess 
 { 
+    public static $encoding = 'UTF-8';
     protected static $instance;
+    protected $parameters = array();
+    protected $content = array();
 
     /**
      * Une seule instance
      *
      * @return PRSParameters
      */
-    static public function singleton($encoding = 'UTF-8')
+    static public function factory()
     {
-        if (!isset(self::$instance)) {
-            self::$instance = new PRSParameters;
-            self::$instance->fixEncoding($encoding);
+            return new PRSParameters;
+    }
 
-            // headers parameters
-            self::$instance->headers = new stdClass;
-            if (isset($_SERVER['CONTENT_LENGTH'])) 
-                self::$instance->headers->content_length = $_SERVER['CONTENT_LENGTH'];
-            if (isset($_SERVER['CONTENT_TYPE'])) 
-                self::$instance->headers->content_type = new PSO($_SERVER['CONTENT_TYPE']);
-
-            foreach($_SERVER as $k => $v) {
-                if (substr($k, 0, 5) == 'HTTP_') {
-                    $k = str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($k, 5))));
-                    self::$instance->headers->$k = PSO::factory($v)->fixEncoding($encoding);
-                }
+    /**
+     * exchange
+     * 
+     * @param array
+     * @return mixed
+     */
+    public function exchange(array $parameters) 
+    {
+        foreach($parameters as $p) {
+            if (is_array($p)) {
+                foreach($p as $q)
+                    if (is_string($q)) 
+                        $this->parameters[$q] = $p;
             }
-            foreach($_REQUEST as $k => $v) {
+            else {
+                $this->parameters[$p] = array($p);
+            }
+        }
+    }
 
-                if (is_string($v)) {
-                    $k = self::$instance->normalizeKey($k);
-                    self::$instance->{$k} = PSO::factory($v)->fixEncoding($encoding);
+    /**
+     * @see Magic
+     */
+    public function __get($offset) 
+    {
+        return $this->offsetGet($offset);
+    }
+    /**
+     * @see Magic
+     */
+    public function __set($offset, $value) 
+    {
+        return $this->offsetSet($offset, $value);
+    }
+    /**
+     * @see Magic
+     */
+    public function __isset($offset) 
+    {
+        return $this->offsetExists($offset);
+    }
+    /**
+     * @see Magic
+     */
+    public function __unset($offset) 
+    {
+        return $this->offsetUnset($offset);
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetExists($offset) 
+    {
+        return isset($this->parameters[$offset]) or isset($this->content[$offset]);
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetGet($offset) 
+    {
+        if (isset($this->parameters[$offset])) {
+            foreach($this->parameters[$offset] as $p) {
+                if (is_string($p) and isset($_REQUEST[$p])) {
+                    return (is_string($_REQUEST[$p]) ? PSO::factory($_REQUEST[$p], self::$encoding) : $_REQUEST[$p]);
                 }
             }
         }
-
-        return self::$instance;
+        elseif (isset($this->content[$offset])) {
+            return (is_string($this->content[$offset]) ? PSO::factory($this->content[$offset], self::$encoding) : $this->content[$offset]);
+        }
+        return null;
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetSet($offset, $value) 
+    {
+        if (isset($this->parameters[$offset])) {
+            $_REQUEST[$this->parameters[$offset][0]] = $value;            
+        }
+        else {
+            if (is_null($offset)) {
+                array_push($this->content, $value);
+            }
+            else {
+                $this->content[$offset] = $value;
+            }
+        }
+        return true;
+    }
+    /**
+     *  @see ArrayAccess
+     */
+    public function offsetUnset($offset) 
+    {
+        unset($this->content[$offset]);
     }
 
+    public function set($offset, $value) 
+    {
+        return $this->offsetSet($offset, $value);
+    }
 }

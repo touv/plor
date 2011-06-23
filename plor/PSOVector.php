@@ -37,47 +37,33 @@
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-require_once 'Fetchor.php';
-require_once 'Encoding.php';
 require_once 'PSO.php';
-require_once 'PSOVector.php';
+require_once 'Fetchor.php';
+require_once 'Dumpable.php';
+require_once 'Encoding.php';
 
 /**
- * PIO is Input Object
+ * a Vector of PSO Object
  *
- * @category  PIO
+ * @category  PSO
  * @package   PLOR
  * @author    Nicolas Thouvenin <nthouvenin@gmail.com>
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PIO implements Fetchor, Encoding
+class PSOVector implements Countable, Fetchor, Dumpable, Encoding
 {
-    protected $__encoding = 'UTF-8';
-    public static $buffersize = 8192;
-
-    protected $ending = "\n";
-
-    protected $content;
-    protected $handle;
+    private $__encoding = 'UTF-8';
+    protected $content = array();
 
     /**
      * Constructor
      * @param string 
      * @param string
      */
-    public function __construct($content = '')
+    public function __construct()
     {
-        $this->exchange($content);
-    }
-
-    /**
-     * __destruct
-     *
-     */
-    public function __destruct()
-    {
-        $this->close();
+        $this->exchange();
     }
 
     /**
@@ -86,9 +72,9 @@ class PIO implements Fetchor, Encoding
      * @param string
      * @return PSO
      */
-    public static function factory($content = '')
+    public static function factory()
     {
-        return new PIO($content);
+        return new PSOVector();
     }
 
     /**
@@ -98,77 +84,36 @@ class PIO implements Fetchor, Encoding
      * @param string
      * @return PSO
      */
-    public function exchange($content = '') 
+    public function exchange() 
     {
-        if (is_null($content)) $content = ''; // Pas de valeur null
-        if (!is_string($content))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
-        $this->close();
-        $this->content = $content;
         return $this;
     }
 
     /**
-     * set string encoding
-     * @param string
-     * @return PIO
+     * for Interface Countable
+     * @return integer
      */
-    public function fixEncoding($e)
+    public function count()
     {
-        if (!is_string($e))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
-        $this->__encoding = $e;
-        return $this;
-    }
-
-
-    /**
-     * Fixe le sépérateur de ligne
-     *
-     * @return object
-     */
-    public function setEnding($s)
-    {
-        if (!is_string($s))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
-        $this->ending = $s;
-        return $this;
-    }
-
-
-    /**
-     * Retourne une portion du buffer
-     *
-     * @return object
-     */
-    public function fetch()
-    {
-        if (is_null($this->handle)) {
-            $this->handle = @fopen($this->content, 'r');
-        }
-        if (!$this->handle or feof($this->handle)) {
-            $this->close();
-            return false;
-        }
-        $s = stream_get_line($this->handle, self::$buffersize, $this->ending);
-        if ($s === false) {
-            $this->close();
-            return false;
-        }
-        return PSO::factory($s)->fixEncoding($this->__encoding);
+        return count($this->content);
     }
 
     /**
-     * Retourne toute les lignes du résulat de la requete 
-     *
-     * @return DAT
+     * Use the class as string
+     * @return string
      */
-    public function fetchAll()
+    public function __toString()
     {
-        $ret = new PSOVector;
-        while($row = $this->fetch()) 
-            $ret->append($row);
-        return $ret;
+        return (string)$this->splice();
+    }
+
+    /**
+     * Convert class to string
+     * @return string
+     */
+    public function toString()
+    {
+        return (string)$this->splice();
     }
 
     /**
@@ -178,12 +123,102 @@ class PIO implements Fetchor, Encoding
      */
     public function close()
     {
-        if ($this->handle) {
-            fclose($this->handle);
-            $this->handle = null;
-        }
+        reset($this->content);
         return $this;
     }
 
+    /**
+     * prepend item
+     *
+     * @return object
+     */
+    public function prepend(PSO $value)
+    {
+        if (! $value instanceof PSO and ! $value instanceof PSOVector and ! $value instanceof PSOMap) {
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a instance of PSO, PSOVector or PSOMap, '.gettype($value).' given', E_USER_ERROR);
+        }
+        array_unshift($this->content, $value);
+        return $this;
+    }
+
+    /**
+     * append item
+     *
+     * @return object
+     */
+    public function append($value)
+    {
+        if (! $value instanceof PSO and ! $value instanceof PSOVector and ! $value instanceof PSOMap) {
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a instance of PSO, PSOVector or PSOMap, '.gettype($value).' given', E_USER_ERROR);
+        }
+        $this->content[] = $value;
+        return $this;
+    }
+
+    /**
+     * fetch item
+     *
+     * @return object
+     */
+    public function fetch()
+    {
+        $r = current($this->content);
+        if ($r === false) {
+            $this->close();
+            return false;
+        }
+        next($this->content);
+        return $r;
+    }
+
+    /**
+     * Retourne toute les lignes du rÃ©sulat de la requete 
+     *
+     * @return PSOVector
+     */
+    public function fetchAll()
+    {
+        return $this;
+    }
+    
+    /**
+     * Dump content of the class
+     * @return PSOVector
+     */
+    public function dump($s = null)
+    {
+        echo $this->toString(), $s;
+        return $this;
+    }
+
+    /**
+     * set string encoding
+     * @return PSOVector
+     */
+    public function fixEncoding($e)
+    {
+        if (!is_string($e))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+        $this->__encoding = $e;
+        return $this;
+    }
+
+    /**
+     * splice
+     *
+     * @return PSO
+     */
+    public function splice($glue = null)
+    {
+        $ret = new PSO('', $this->__encoding);
+        while($row = $this->fetch()) {
+            if (!is_null($glue)) {
+                $ret->concat($glue);
+            }
+            $ret->concat($row);
+        }
+        return $ret;
+    }
 
 }
+

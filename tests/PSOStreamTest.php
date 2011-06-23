@@ -3,7 +3,6 @@
 
 ini_set('include_path', dirname(__FILE__).'/../plor'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit/Framework.php';
 require_once 'PSOStream.php';
 
 class PSOStreamTest extends PHPUnit_Framework_TestCase

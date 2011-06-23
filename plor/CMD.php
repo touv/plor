@@ -40,7 +40,7 @@ require_once 'Fetchor.php';
 require_once 'Encoding.php';
 require_once 'Dumpable.php';
 require_once 'PSO.php';
-require_once 'DAT.php';
+require_once 'PSOVector.php';
 
 /**
  * a shell facade in PHP
@@ -306,7 +306,7 @@ class CMD implements Fetchor, Dumpable, Encoding
      */
     public function fetchAll()
     {
-        $ret = new DAT;
+        $ret = new PSOVector;
         while($row = $this->fetch()) 
             $ret->append($row);
         return $ret;

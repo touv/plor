@@ -5,8 +5,7 @@ ini_set('include_path', dirname(__FILE__).'/../plor'.PATH_SEPARATOR.ini_get('inc
 
 require_once 'CMD.php';
 
-
-class PSOStreamTest extends PHPUnit_Framework_TestCase
+class CMDTest extends PHPUnit_Framework_TestCase
 {
     function setUp()
     {
@@ -74,7 +73,6 @@ class PSOStreamTest extends PHPUnit_Framework_TestCase
             ->bind(2, '/dev/null')
             ->fire();
 
-        for ($s = new PSO; $b = $c->fetch(); $s->concat($b));
-        $this->assertTrue($s->contains('</script>'));
+        $this->assertTrue($c->fetchAll()->splice()->contains('</script>'));
     }
 }

@@ -39,7 +39,8 @@
 
 require_once 'Fetchor.php';
 require_once 'Encoding.php';
-require_once 'DAT.php';
+require_once 'PSOVector.php';
+require_once 'PSOMap.php';
 
 /**
  * a PDOStatement facade in PHP
@@ -214,21 +215,21 @@ class PQO implements Fetchor, Encoding
             $this->close();
             return false;
         }
-        $ret = new stdClass;
+        $ret = new PSOMap;
         foreach($row as $k => $v) 
-            $ret->$k = PSO::factory($v)->fixEncoding($this->__encoding);
+            $ret->set($k, PSO::factory($v)->fixEncoding($this->__encoding));
         return $ret;
     }
 
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return DAT
+     * @return PSOVector
      */
     public function fetchAll()
     {
         if (!$this->executed) return false;
-        $ret = new DAT;
+        $ret = new PSOVector;
         while($row = $this->fetch())
             $ret->append($row);
         return $ret;
