@@ -14,7 +14,7 @@
 	</lead>
 	<date>2011-06-24</date>
 	<version>
-		<release>3.2.3</release>
+		<release>3.2.4</release>
 		<api>3.2.0</api>
 	</version>
 	<stability>
@@ -42,6 +42,8 @@
                 <file name="PRSUrl.php" role="php" />
                 <file name="PSO.php" role="php" />
                 <file name="PSOStream.php" role="php" />
+				<file name="PSOMap.php" role="php" />
+				<file name="PSOVector.php" role="php" />
 			</dir>
 		</dir>
 	</contents>
