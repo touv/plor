@@ -38,6 +38,7 @@
  */
 
 require_once 'PSO.php';
+require_once 'PSOVector.php';
 require_once 'PRSParameters.php';
 
 /**
@@ -54,7 +55,7 @@ class PRSUrl
     protected $rules;
     protected $translaters = array();
     protected $callbacks = array();
-    protected $sections = array();
+    protected $sections;
     protected $constants = array();
     protected $methods = array();
     protected $input;
@@ -186,7 +187,7 @@ class PRSUrl
     {
         if (is_null($this->input)) return false;
         $path = $this->input->path();
-        $this->sections = array();
+        $this->sections = new PSOVector;
         foreach($this->rules as $rule) {
             $catch = false;
             $section = new PSO;
@@ -208,7 +209,7 @@ class PRSUrl
             if ($section->isEmpty()) return false;
             $path = substr($path, count($section));
             if ($catch) {
-                $this->sections[] = $section;
+                $this->sections->append($section);
             }
         }
         return true;
@@ -228,7 +229,7 @@ class PRSUrl
         foreach($this->constants as $constant => $value) {
             $parameters->set($constant, PSO::factory($value));
         }
-        $parameters->__sections = new ArrayObject($this->sections);
+        $parameters->__sections = $this->sections;
         $parameters->__server   = $this->input;
         $parameters->__method   = $this->input->method();
         $parameters->__methods  = $this->methods;

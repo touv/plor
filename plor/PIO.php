@@ -161,7 +161,7 @@ class PIO implements Fetchor, Encoding
     /**
      * Retourne toute les lignes du résulat de la requete 
      *
-     * @return DAT
+     * @return PSOVector
      */
     public function fetchAll()
     {

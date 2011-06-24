@@ -37,7 +37,7 @@ function get_project_in_xml($p, $h)
 {
     global $datas;
     $h->add('content-type', 'text/xml');
-    $project_id = $p->__sections[0]->toInteger();
+    $project_id = $p->__sections->fetch()->toInteger();
     if (!isset($datas['projects'][$project_id]))
         return $h->send(404, true);
     echo '<projet>';
@@ -49,7 +49,7 @@ function get_project_in_xml($p, $h)
 function delete_project($p, $h)
 {
     global $datas;
-    $project_id = $p->__sections[0]->toInteger();
+    $project_id = $p->__sections->fetch()->toInteger();
     unset($datas['projects'][$project_id]);
     $h->send(204, true);
 }
@@ -57,7 +57,7 @@ function list_of_issues_in_xml($p, $h)
 {
     global $datas;
     $h->add('content-type', 'text/xml');
-    $project_id = $p->__sections[0]->toInteger();
+    $project_id = $p->__sections->fetch()->toInteger();
     if (!isset($datas['projects'][$project_id]))
         return $h->send(404, true);
 
@@ -74,7 +74,7 @@ function list_of_issues_in_xml($p, $h)
 function add_new_issue($p, $h)
 {
     global $datas;
-    $project_id = $p->__sections[0]->toInteger();
+    $project_id = $p->__sections->fetch()->toInteger();
     if (!isset($datas['projects'][$project_id]))
         return $h->send(404, true);
 
@@ -96,18 +96,19 @@ function get_issue_in_xml($p, $h)
 function delete_issue($p, $h)
 {
     global $datas;
-    $project_id = $p->__sections[0]->toInteger();
-    $issue_id = $p->__sections[1]->toInteger();
+    $project_id = $p->__sections->fetch()->toInteger();
+    $issue_id = $p->__sections->fetch()->toInteger();
     unset($datas['projects'][$project_id]['issues'][$issue_id]);
     $h->send(204, true);
 }
 function get_issue($p, $h)
 {
     global $datas;
-    if ($p->__sections[2]->isEqual('xml')) {
+    $project_id = $p->__sections->fetch()->toInteger();
+    $issue_id = $p->__sections->fetch()->toInteger();
+    $format = $p->__sections->fetch();
+    if ($format->isEqual('xml')) {
          $h->add('content-type', 'text/xml');
-         $project_id = $p->__sections[0]->toInteger();
-         $issue_id = $p->__sections[1]->toInteger();
          if (!isset($datas['projects'][$project_id]))
              return $h->send(404, true);
          if (!isset($datas['projects'][$project_id]['issues'][$issue_id]))
@@ -118,10 +119,8 @@ function get_issue($p, $h)
          echo '</issue>';
          $h->send(200);
     }
-    elseif ($p->__sections[2]->isEqual('html')) {
+    elseif ($format->isEqual('html')) {
         $h->add('content-type', 'text/html');
-        $project_id = $p->__sections[0]->toInteger();
-        $issue_id = $p->__sections[1]->toInteger();
         if (!isset($datas['projects'][$project_id]))
             return $h->send(404, true);
         if (!isset($datas['projects'][$project_id]['issues'][$issue_id]))
