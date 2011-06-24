@@ -12,9 +12,9 @@
 		<email>nthouvenin@gmail.com</email>
 		<active>yes</active>
 	</lead>
-	<date>2011-06-21</date>
+	<date>2011-06-24</date>
 	<version>
-		<release>3.2.2</release>
+		<release>3.2.3</release>
 		<api>3.2.0</api>
 	</version>
 	<stability>
