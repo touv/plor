@@ -158,6 +158,15 @@ class PQO implements Fetchor, Encoding
      */
     public function bindValue($parameter, $value, $data_type = PDO::PARAM_STR, $length = null)
     {
+        if ($value instanceof PSO) {
+            if ($data_type === PDO::PARAM_INT or $data_type === PDO::PARAM_BOOL) {
+                settype($value, 'string');
+                settype($value, 'integer');
+            }
+            else {
+                settype($value, 'string');
+            }
+        }
         $this->statement->bindParam($parameter, $value, $data_type, $length);
         return $this;
     }
