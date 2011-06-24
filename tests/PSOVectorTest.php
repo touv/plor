@@ -47,5 +47,22 @@ class PSOVectorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($i->splice()->isEqual('3214'));
     }
 
+
+    function test_loop()
+    {
+        $h = '';
+        $i = PSOVector::factory()
+            ->append(new PSO('A'))
+            ->append(new PSO('B'));
+        $a = $i->fetch();
+        $b = $i->fetch();
+        $c = $i->fetch();
+        $d = $i->fetch();
+        $this->assertEquals((string)$a, 'A');
+        $this->assertEquals((string)$b, 'B');
+        $this->assertFalse($c);
+        $this->assertEquals((string)$d, 'A');
+    }
+
 }
 
