@@ -4,6 +4,9 @@ XSLTPROC=xsltproc
 CP=cp
 MKDIR=mkdir
 RM=rm
+VERSION=`./extract-version.sh`
+CURVER=plor-$(VERSION).tgz
+APIKEY=a011bbaf-336a-98c4-1547-0ee99ef7c990
 
 all : 
 	@echo "try :"
@@ -15,8 +18,14 @@ push:
 	git push
 	git push --tags
 
-release: plor-`./extract-version.sh`.tgz
+release: tagging pearing
 
-plor-`./extract-version.sh`.tgz: package.xml
-	$(PEAR) package package.xml
-	git tag -a -m "Version `./extract-version.sh`"  v`./extract-version.sh`
+tagging: $(CURVER)
+	git tag -a -m "Version $(VERSION)"  v$(VERSION)
+
+pearing: $(CURVER)
+	@read -p "Who are you ? " toto && cat $(CURVER) | curl -u `echo $$toto`:$(APIKEY) -X POST --data-binary @- http://pear.pxxo.net/respear/
+
+$(CURVER): package.xml
+	$(PEAR) package $?
+
