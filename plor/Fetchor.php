@@ -49,6 +49,7 @@
  */
 interface Fetchor
 {
+    public function map($f);
     public function fetch();
     public function fetchAll();
     public function close();

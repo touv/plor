@@ -213,6 +213,19 @@ class PQO implements Fetchor, Encoding
     }
 
     /**
+     * map function on fetch 
+     *
+     * @return object
+     */
+    public function map($f)
+    {
+        if (!is_callable($f))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+        while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
+        return $this;
+    }
+
+    /**
      * Retourne une ligne du résulat de la requete
      *
      * @return object

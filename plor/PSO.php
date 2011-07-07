@@ -64,6 +64,13 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     protected $content;
     protected $size;
     protected $position = 0;
+    protected $nparameters = array();
+    protected $kparameters = array();
+ 
+    const PARAM_BOOL = PDO::PARAM_BOOL;
+    const PARAM_NULL = PDO::PARAM_NULL;
+    const PARAM_INT  = PDO::PARAM_INT;
+    const PARAM_STR  = PDO::PARAM_STR;
 
     /**
      * Constructor
@@ -114,6 +121,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
         if (!is_string($e))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
+        mb_internal_encoding($this->__encoding);
         $this->size = mb_strlen($this->content, $e);
         return $this;
     }
@@ -126,6 +134,15 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function count()
     {
         return $this->size;
+    }
+
+    /**
+     * Clone 
+     * @return PSO
+     */
+    public function duplicate()
+    {
+        return PSO::factory($this->content)->fixEncoding($this->__encoding);
     }
 
     /**
@@ -189,7 +206,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
         return (boolean)$this->content;
     }
 
-     /**
+    /**
      * Convert class to Stream
      * @return string
      */
@@ -211,7 +228,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
         return ($this->content == '');
     }
 
-   
+
     /**
      * isEqual
      * @return boolean
@@ -244,11 +261,12 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
 
     /**
      *  replace
+     *  @see http://fr.php.net/manual/fr/function.mb-ereg-replace.php
      *  @return PSO
      */
-    public function replace($pattern, $replacement,  $limit = -1 , $count = null)
+    public function replace($pattern, $replacement,  $option = "msr")
     {
-        $this->content = preg_replace($pattern, $replacement, $this->content, $limit, $count);
+        $this->content = mb_ereg_replace($pattern, $replacement, $this->content, $option);
         return $this;
     }
 
@@ -263,16 +281,6 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     }
 
     /**
-     *  substr
-     *  @return new PSO
-     */
-    public function substr($start, $length = null)
-    {
-        return PSO::factory(mb_substr($this->content, $start, $length, $this->__encoding))->fixEncoding($this->__encoding);
-    }
-
-
-    /**
      * Fixe le sépérateur de ligne
      *
      * @return object
@@ -282,6 +290,19 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
         if (!is_string($s))
             trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
         $this->ending = $s;
+        return $this;
+    }
+
+    /**
+     * map function on fetch 
+     *
+     * @return object
+     */
+    public function map($f)
+    {
+        if (!is_callable($f))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+        while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
         return $this;
     }
 
@@ -334,6 +355,127 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     {
         $this->position = 0;
         return $this;
+    }
+
+    /**
+     * Association de paramètres
+     *
+     * @see 
+     */
+    public function bind($parameter, &$value, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
+
+        if (!is_null($length) and !is_integer($length))
+            trigger_error('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
+
+        if (is_integer($parameter)) 
+            $this->nparameters[$parameter] = array(&$value, $data_type, $length);
+        else 
+            $this->kparameters[$parameter] = array(&$value, $data_type, $length);
+        return $this;
+    }
+
+    /**
+     * Association de paramètres par valeur
+     *
+     */
+    public function bindValue($parameter, $value, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
+
+        if (!is_null($length) and !is_integer($length))
+            trigger_error('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
+
+        if (is_integer($parameter)) 
+            $this->nparameters[$parameter] = array($value, $data_type, $length);
+        else 
+            $this->kparameters[$parameter] = array($value, $data_type, $length);
+        return $this;
+    }
+
+    /**
+     * Déclaration d'une association de paramètres
+     *
+     * @param mixed $parameter
+     * @param int $data_type
+     * @param int $length
+     * @return PQO
+     */
+    public function with($parameter, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        return $this->bindValue($parameter, '?', $data_type, $length);
+    }
+
+    /**
+     * Donne une valeur à un paramètre associé
+     *
+     * @param mixed $parameter
+     * @param mixed $data_value
+     * @return PQO
+     */
+    public function set($parameter, $value)
+    {
+        if (is_integer($parameter) and isset($this->nparameters[$parameter])) { 
+            $this->nparameters[$parameter][0] = $value;
+        }
+        elseif (isset($this->kparameters[$parameter])) {
+            $this->kparameters[$parameter][0] = $value;
+        }
+        else {
+            trigger_error('Argument 1 passed to '.__METHOD__.' must be a key of known parameter', E_USER_ERROR);
+        }
+
+        return $this;
+    }
+
+    protected function _par2val(&$value, $data_type, $length)
+    {
+        if ($data_type === PSO::PARAM_INT or $data_type === PSO::PARAM_BOOL) {
+            if ($value instanceof PSO) settype($value, 'string');
+            settype($value, 'integer');
+        }
+        else {
+            settype($value, 'string');
+        }
+        $value = is_null($length) ? $value : substr($value, 0, $length);
+    }
+
+    /**
+     * Exécute la requète
+     *
+     * @return PQO
+     */
+    public function fire()
+    {
+        if (sizeof($this->nparameters)) {
+            $r = PSO::factory()->fixEncoding($this->__encoding);
+            $segments = mb_split('(?<=[\s\w])\?', $this->content);
+            foreach($segments as $k => $segment) {
+                $r->concat($segment);
+                if (isset($this->nparameters[$k+1]) and !is_null($this->nparameters[$k+1])) {
+                    $this->_par2val($this->nparameters[$k+1][0], $this->nparameters[$k+1][1], $this->nparameters[$k+1][2]);
+                    $r->concat($this->nparameters[$k+1][0]);
+                    $this->nparameters[$k+1] = null;
+                }
+            }
+            $r->replace(preg_quote('\?'), '?', 'm');
+            $this->nparameters = array();
+        }
+        else {
+            $r = $this->duplicate();
+        }
+        if (sizeof($this->kparameters)) {
+            foreach($this->kparameters as $k => $v) if (!is_null($v)) {
+                $this->_par2val($this->kparameters[$k][0], $this->kparameters[$k][1], $this->kparameters[$k][2]);
+                $r->replace(preg_quote($k).'(?!\w)', $this->kparameters[$k][0], 'm');
+                $this->kparameters[$k] = null;
+            }
+            $this->kparameters = array();
+        }
+        return $r;
     }
 
 
@@ -424,6 +566,59 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function rtrim($charlist = null)
     {
         $this->content = rtrim($this->content, $charlist);
+        return $this;
+    }
+
+    /**
+     * pad
+     * @return PSO
+     */
+    public function pad($length, $string = " ")
+    {
+        $this->size = mb_strlen($this->content, $this->__encoding);
+        $ds = $length - $this->size;
+        if ($ds <= 0) return $this;
+        $rs = $ds / 2;
+        $ls = $ds - $rs;
+
+        for($lc = '', $i = 1; $i <= $ls; $i++)
+            $lc .= $string;
+        for($rc = '', $i = 1; $i <= $rs; $i++)
+            $rc .= $string;
+
+        $this->content = $lc . $this->content . $rc;
+        return $this;
+    }
+
+    /**
+     * lpad
+     * @return PSO
+     */
+    public function lpad($length, $string = " ")
+    {
+        $this->size = mb_strlen($this->content, $this->__encoding);
+        $ds = $length - $this->size;
+        if ($ds <= 0) return $this;
+        for($c = '', $i = 1; $i <= $ds; $i++)
+            $c .= $string;
+
+        $this->content = $c . $this->content ;
+        return $this;
+    }
+
+    /**
+     * rpad
+     * @return PSO
+     */
+    public function rpad($length, $string = " ")
+    {
+        $this->size = mb_strlen($this->content, $this->__encoding);
+        $ds = $length - $this->size;
+        if ($ds <= 0) return $this;
+        for($c = '', $i = 1; $i <= $ds; $i++)
+            $c .= $string;
+
+        $this->content .= $c;
         return $this;
     }
 
