@@ -136,10 +136,10 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
     public function set($key, $value)
     {
         if (!is_string($key)) {
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
         }
         if (! $value instanceof PSO and ! $value instanceof PSOVector and ! $value instanceof PSOMap) {
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a instance of PSO, PSOVector or PSOMap, '.gettype($value).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a instance of PSO, PSOVector or PSOMap, '.gettype($value).' given', E_USER_ERROR);
         }
         $key = preg_replace('/^([0-9])/', '_\\1', trim(preg_replace('/[^A-Za-z0-9_]/', '_', $key), '_'));
         $this->content[$key] = $value;
@@ -166,7 +166,7 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
     public function del($key)
     {
         if (!is_string($key))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
 
         if (isset($this->content[$key]))
             unset($this->content[$key]);
@@ -193,7 +193,7 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
     public function get($key)
     {
         if (!is_string($key))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($key).' given', E_USER_ERROR);
 
         if (isset($this->content[$key]))
             return $this->content[$key];
@@ -212,6 +212,18 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
         return $this->get($key);
     }
 
+    /**
+     * map function on fetch 
+     *
+     * @return object
+     */
+    public function map($f)
+    {
+        if (!is_callable($f))
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+        while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
+        return $this;
+    }
 
     /**
      * fetch item
@@ -256,7 +268,7 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
     public function fixEncoding($e)
     {
         if (!is_string($e))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         return $this;
     }

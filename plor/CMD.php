@@ -120,9 +120,9 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function exchange($command, $options = null) 
     {
         if (!is_string($command))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($command).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($command).' given', E_USER_ERROR);
         if (!is_null($options) and !is_array($options)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be an array, '.gettype($options).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be an array, '.gettype($options).' given', E_USER_ERROR);
 
         $this->command = $command;
         if (!is_null($options))
@@ -139,7 +139,7 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function fixEncoding($e)
     {
         if (!is_string($e))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         return $this;
     }
@@ -180,11 +180,11 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function option($name, $value = null)
     {
         if (!is_string($name))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!preg_match(',\w+,i', $name))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must contain word\'s characters, '.$name.' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must contain word\'s characters, '.$name.' given', E_USER_ERROR);
         if (!is_null($value) and !is_string($value)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
 
         $min = strlen($name) == $this->options['short_option_size'] ? $this->options['short_option_separator'] : $this->options['long_option_separator'];
         $this->command .= ' '.$min.$name;
@@ -205,7 +205,7 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function param($value)
     {
         if (!is_string($value))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
 
         $this->command .= ' '.escapeshellcmd($value);
         return $this;
@@ -218,9 +218,9 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function bind($desc, $url)
     {
         if (!is_integer($desc))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a integer, '.gettype($desc).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a integer, '.gettype($desc).' given', E_USER_ERROR);
         if (!is_string($url))
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($url).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($url).' given', E_USER_ERROR);
         $turl = parse_url($url);
         $name = isset($turl['path']) ? realpath($turl['path']) : null;
         $mode = $desc == 0 ? 'r' : 'w';
@@ -273,7 +273,7 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function setEnding($s)
     {
         if (!is_string($s))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
         $this->ending = $s;
         return $this;
     }
@@ -286,7 +286,7 @@ class CMD implements Fetchor, Dumpable, Encoding
     public function map($f)
     {
         if (!is_callable($f))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
         while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
         return $this;
     }

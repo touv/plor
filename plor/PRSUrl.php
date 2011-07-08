@@ -90,7 +90,7 @@ class PRSUrl
     public function exchange($content) 
     {
         if (!is_string($content))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->rules = self::compile($content);
         return $this;
     }
@@ -114,9 +114,9 @@ class PRSUrl
     public function translate($name, $callback)
     {
         if (!is_string($name))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
         $this->translaters[$name] = $callback;
         return $this;
     }
@@ -132,9 +132,9 @@ class PRSUrl
     public function bindParameter($paraname, $callback)
     {
         if (!is_string($paraname))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($paraname).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($paraname).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
         $this->callbacks[] = array($paraname, $callback);
         return $this;
     }
@@ -149,11 +149,11 @@ class PRSUrl
     public function bindMethod($method, $callback, $params = array())
     {
         if (!is_string($method))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($method).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($method).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
-            trigger_error('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
+            throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
         if (!is_array($params)) 
-            trigger_error('Argument 3 passed to '.__METHOD__.' must be a array, '.gettype($params).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 3 passed to '.__METHOD__.' must be a array, '.gettype($params).' given', E_USER_ERROR);
 
         $this->callbacks[] = array($method, $callback, $params);
         $this->methods[] = $method;
@@ -169,9 +169,9 @@ class PRSUrl
     public function addConstant($name, $value)
     {
         if (!is_string($name))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!preg_match(',^\w+$,', $name)) 
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string, '.$name.' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string, '.$name.' given', E_USER_ERROR);
         $this->constants[$name] = $value;
         return $this;
     }

@@ -104,7 +104,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     {
         if (is_null($content)) $content = ''; // Pas de valeur null
         if (!is_string($content))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->content = $content;
         $this->size = mb_strlen($this->content);
         $this->close();
@@ -119,7 +119,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function fixEncoding($e)
     {
         if (!is_string($e))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         mb_internal_encoding($this->__encoding);
         $this->size = mb_strlen($this->content, $e);
@@ -288,7 +288,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function setEnding($s)
     {
         if (!is_string($s))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
         $this->ending = $s;
         return $this;
     }
@@ -301,7 +301,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function map($f)
     {
         if (!is_callable($f))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
         while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
         return $this;
     }
@@ -365,10 +365,10 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function bind($parameter, &$value, $data_type = PSO::PARAM_STR, $length = null)
     {
         if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
 
         if (!is_null($length) and !is_integer($length))
-            trigger_error('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
 
         if (is_integer($parameter)) 
             $this->nparameters[$parameter] = array(&$value, $data_type, $length);
@@ -384,10 +384,10 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function bindValue($parameter, $value, $data_type = PSO::PARAM_STR, $length = null)
     {
         if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
 
         if (!is_null($length) and !is_integer($length))
-            trigger_error('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 4 passed to '.__METHOD__.' must be a integer, '.gettype($length).' given', E_USER_ERROR);
 
         if (is_integer($parameter)) 
             $this->nparameters[$parameter] = array($value, $data_type, $length);
@@ -425,7 +425,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
             $this->kparameters[$parameter][0] = $value;
         }
         else {
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a key of known parameter', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a key of known parameter', E_USER_ERROR);
         }
 
         return $this;

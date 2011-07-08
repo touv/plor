@@ -102,7 +102,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
                 $this->__size  = count($this->fetchAll());
             }
             else {
-                trigger_error('Argument 1 passed to '.__METHOD__.' must be a allowed type, '.gettype($content).' given', E_USER_ERROR);
+                throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a allowed type, '.gettype($content).' given', E_USER_ERROR);
             }
         }
 
@@ -126,7 +126,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
     public function add($k, $v)
     {
         if (!is_string($k))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         $k = self::normalizeKey($k);
 
@@ -150,7 +150,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
     public function set($k, $v)
     {
         if (!is_string($k))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         $k = self::normalizeKey($k);
         $this->{$k} = $this->_checkval($v);
@@ -219,7 +219,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
     public function fixEncoding($e)
     {
         if (!is_string($e))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         return $this;
     }
@@ -284,7 +284,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
     public function map($f)
     {
         if (!is_callable($f))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a function, '.gettype($f).' given', E_USER_ERROR);
         while($r = $this->fetch()) if (call_user_func($f, $r) === false) break;
         return $this;
     }

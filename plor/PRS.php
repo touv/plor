@@ -94,7 +94,7 @@ class PRS implements Countable, Iterator, ArrayAccess
     public function exchange($content = array()) 
     {
         if (!is_array($content))
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a array, '.gettype($content).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a array, '.gettype($content).' given', E_USER_ERROR);
 
         $this->options = array_merge($this->options, $content);
         ignore_user_abort($this->options['ignore_user_abort']);
@@ -165,7 +165,7 @@ class PRS implements Countable, Iterator, ArrayAccess
     public function offsetSet($offset, $value) 
     {
         if (! $value instanceof PRSUrl) 
-            trigger_error('Argument 1 passed to '.__METHOD__.' must be a PRSUrl, '.gettype($value).' given', E_USER_ERROR);
+            throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a PRSUrl, '.gettype($value).' given', E_USER_ERROR);
 
         $value->setInput($this->input);
         if (is_null($offset))
