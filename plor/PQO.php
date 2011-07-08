@@ -95,7 +95,7 @@ class PQO implements Fetchor, Encoding
      */
     public function exchange(PDO $pdo, $query) 
     {
-        if (!is_string($query))
+        if (!to_string($query))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($query).' given', E_USER_ERROR);
         $this->close();
         $this->query = $query;
@@ -110,7 +110,7 @@ class PQO implements Fetchor, Encoding
      */
     public function fixEncoding($e)
     {
-        if (!is_string($e))
+        if (!to_string($e))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         return $this;

@@ -44,6 +44,19 @@ require_once 'Encoding.php';
 require_once 'PSOVector.php';
 require_once 'PSOStream.php';
 
+
+function to_string(&$v)
+{
+    if (is_string($v))
+        return true;
+    if (is_object($v) and method_exists($v,'__toString')) {
+        $v = strval($v);
+        return true;
+    }
+    return false;
+}
+
+
 /**
  * a string facade in PHP
  *
@@ -103,7 +116,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     public function exchange($content = '') 
     {
         if (is_null($content)) $content = ''; // Pas de valeur null
-        if (!is_string($content))
+        if (!to_string($content))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->content = $content;
         $this->size = mb_strlen($this->content);
@@ -118,7 +131,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
      */
     public function fixEncoding($e)
     {
-        if (!is_string($e))
+        if (!to_string($e))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         mb_internal_encoding($this->__encoding);
@@ -212,7 +225,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
      */
     public function toURL($id = null)
     {
-        if (is_null($id) or !is_string($id)) {
+        if (is_null($id) or !to_string($id)) {
             $id = uniqid();
         }
         PSOStream::$handles[$id] = $this;
@@ -287,7 +300,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
      */
     public function setEnding($s)
     {
-        if (!is_string($s))
+        if (!to_string($s))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
         $this->ending = $s;
         return $this;
@@ -364,7 +377,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
      */
     public function bind($parameter, &$value, $data_type = PSO::PARAM_STR, $length = null)
     {
-        if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
+        if (to_string($parameter) and !preg_match(',:\w+,', $parameter))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
 
         if (!is_null($length) and !is_integer($length))
@@ -383,7 +396,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
      */
     public function bindValue($parameter, $value, $data_type = PSO::PARAM_STR, $length = null)
     {
-        if (is_string($parameter) and !preg_match(',:\w+,', $parameter))
+        if (to_string($parameter) and !preg_match(',:\w+,', $parameter))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string', E_USER_ERROR);
 
         if (!is_null($length) and !is_integer($length))
@@ -490,7 +503,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
             if ($a instanceof PSO) {
                 $this->content .= $a->toString();
             }
-            elseif (is_string($a)) {
+            elseif (to_string($a)) {
                 $this->content .= $a;
             }
             else {

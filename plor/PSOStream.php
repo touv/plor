@@ -90,7 +90,7 @@ class PSOStream
     function stream_read($count)
     {
         if (!$this->readable) return false;
-        $ret = self::$handles[$this->varname]->substr($this->position, $count);
+        $ret = self::$handles[$this->varname]->slice($this->position, $count);
         $this->position += count($ret);
         return $ret;
     }
@@ -101,9 +101,10 @@ class PSOStream
         $size = strlen($data);
         self::$handles[$this->varname]->exchange(
             self::$handles[$this->varname]
-            ->substr(0, $this->position)
+            ->duplicate()
+            ->slice(0, $this->position)
             ->concat($data)
-            ->concat(self::$handles[$this->varname]->substr($this->position + $size))
+            ->concat(self::$handles[$this->varname]->slice($this->position + $size))
             ->toString());
         $this->position += $size;
         return $size;

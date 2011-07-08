@@ -101,7 +101,7 @@ class PIO implements Fetchor, Encoding
     public function exchange($content = '') 
     {
         if (is_null($content)) $content = ''; // Pas de valeur null
-        if (!is_string($content))
+        if (!to_string($content))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->close();
         $this->content = $content;
@@ -115,7 +115,7 @@ class PIO implements Fetchor, Encoding
      */
     public function fixEncoding($e)
     {
-        if (!is_string($e))
+        if (!to_string($e))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
         $this->__encoding = $e;
         return $this;
@@ -129,7 +129,7 @@ class PIO implements Fetchor, Encoding
      */
     public function setEnding($s)
     {
-        if (!is_string($s))
+        if (!to_string($s))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($s).' given', E_USER_ERROR);
         $this->ending = $s;
         return $this;

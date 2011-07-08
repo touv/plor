@@ -89,7 +89,7 @@ class PRSUrl
      */
     public function exchange($content) 
     {
-        if (!is_string($content))
+        if (!to_string($content))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->rules = self::compile($content);
         return $this;
@@ -113,7 +113,7 @@ class PRSUrl
      */
     public function translate($name, $callback)
     {
-        if (!is_string($name))
+        if (!to_string($name))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
             throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
@@ -131,7 +131,7 @@ class PRSUrl
      */
     public function bindParameter($paraname, $callback)
     {
-        if (!is_string($paraname))
+        if (!to_string($paraname))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($paraname).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
             throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
@@ -148,7 +148,7 @@ class PRSUrl
      */
     public function bindMethod($method, $callback, $params = array())
     {
-        if (!is_string($method))
+        if (!to_string($method))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($method).' given', E_USER_ERROR);
         if (!is_callable($callback)) 
             throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be callable, '.(string)$callback.' given', E_USER_ERROR);
@@ -168,7 +168,7 @@ class PRSUrl
      */
     public function addConstant($name, $value)
     {
-        if (!is_string($name))
+        if (!to_string($name))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($name).' given', E_USER_ERROR);
         if (!preg_match(',^\w+$,', $name)) 
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a valid string, '.$name.' given', E_USER_ERROR);

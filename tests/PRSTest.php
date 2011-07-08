@@ -27,6 +27,7 @@ class Test extends PHPUnit_Framework_TestCase
     function setUp()
     {
         $this->rso = new REST_EasyClient(HOST, PORT);
+        $this->rso->setHttpProxy('');
     }
     function tearDown()
     {

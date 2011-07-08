@@ -125,7 +125,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
      */
     public function add($k, $v)
     {
-        if (!is_string($k))
+        if (!to_string($k))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         $k = self::normalizeKey($k);
@@ -149,7 +149,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
      */
     public function set($k, $v)
     {
-        if (!is_string($k))
+        if (!to_string($k))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($k).' given', E_USER_ERROR);
 
         $k = self::normalizeKey($k);
@@ -218,9 +218,9 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
      */
     public function fixEncoding($e)
     {
-        if (!is_string($e))
+        $this->__encoding = $e instanceof PSO ? $e->toString() : $e;
+        if (!to_string($this->__encoding))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($e).' given', E_USER_ERROR);
-        $this->__encoding = $e;
         return $this;
     }
 
@@ -252,7 +252,7 @@ class DAT implements Fetchor, Countable, Dumpable, Encoding
         elseif (is_array($o)) {
             return 'array';
         }
-        elseif (is_string($o)) {
+        elseif (to_string($o)) {
             return 'string';
         }
         elseif (is_int($o) or is_float($o)) {
