@@ -64,17 +64,6 @@ class CMDTest extends PHPUnit_Framework_TestCase
         usleep(1200000);
         $this->assertFalse($c->isAlive());
     }
-    function test_e()
-    {
-        $c = CMD::factory('/usr/bin/curl', array('long_option_operator' => ' '))
-            ->option('no-buffer')
-            ->option('request', 'GET')
-            ->param('http://www.google.fr')
-            ->linkStream(2, '/dev/null')
-            ->fire();
-
-        $this->assertTrue($c->fetchAll()->splice()->contains('</script>'));
-    }
     function test_f()
     {
         $out = new PSO;
@@ -98,6 +87,38 @@ class CMDTest extends PHPUnit_Framework_TestCase
             ->fire();
         $s = $out->toString();
         $this->assertTrue(strpos($s, 'bin') !== false);
+    }
+    function test_h()
+    {
+        $out = new PSO;
+        CMD::factory('
+            /bin/ls --all 
+                    -b 
+                    --color=:color 
+                    --format=:format 
+                    -t 
+                    --reverse 
+                    :path
+            ')
+            ->bindValue(':color', 'never')
+            ->bindValue(':format', 'single-column')
+            ->bindValue(':path', '/usr')
+            ->linkStream(1, $out->toURL())
+            ->fire();
+        $s = $out->toString();
+        $this->assertTrue(strpos($s, 'bin') !== false);
+    }
+
+    function test_e()
+    {
+        $c = CMD::factory('/usr/bin/curl', array('long_option_operator' => ' '))
+            ->option('no-buffer')
+            ->option('request', 'GET')
+            ->param('http://www.google.fr')
+            ->linkStream(2, '/dev/null')
+            ->fire();
+
+        $this->assertTrue($c->fetchAll()->splice()->contains('</script>'));
     }
 
 }

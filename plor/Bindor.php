@@ -53,5 +53,6 @@ interface Bindor
     public function bindValue($parameter, $value, $data_type = PSO::PARAM_STR, $length = null);
     public function with($parameter, $data_type = PSO::PARAM_STR, $length = null);
     public function set($parameter, $value);
+    public function fire();
 }
 

@@ -292,7 +292,8 @@ class CMD implements Fetchor, Bindor, Dumpable, Encoding
      */
     public function fire()
     {
-        $this->process = proc_open((string)$this->command->fire(), $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
+        $cmd = $this->command->fire()->replace('\n', ' ')->toString();
+        $this->process = proc_open($cmd, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
 
         foreach($this->descriptors as $k => $descriptor) 
             if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {
