@@ -34,7 +34,7 @@ class CMDTest extends PHPUnit_Framework_TestCase
         CMD::factory('/bin/ls')
             ->option('all')
             ->param('/usr')
-            ->bind(1, '/tmp/t.txt')            
+            ->linkStream(1, '/tmp/t.txt')            
             ->fire();
         $s = file_get_contents('/tmp/t.txt');
         $this->assertTrue(strpos($s, 'bin') !== false);
@@ -50,7 +50,7 @@ class CMDTest extends PHPUnit_Framework_TestCase
             ->option('t')
             ->option('reverse')
             ->param('/usr')
-            ->bind(1, $out->toURL())
+            ->linkStream(1, $out->toURL())
             ->fire();
         $s = $out->toString();
         $this->assertTrue(strpos($s, 'bin') !== false);
@@ -70,7 +70,7 @@ class CMDTest extends PHPUnit_Framework_TestCase
             ->option('no-buffer')
             ->option('request', 'GET')
             ->param('http://www.google.fr')
-            ->bind(2, '/dev/null')
+            ->linkStream(2, '/dev/null')
             ->fire();
 
         $this->assertTrue($c->fetchAll()->splice()->contains('</script>'));

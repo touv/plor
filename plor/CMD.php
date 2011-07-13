@@ -212,10 +212,10 @@ class CMD implements Fetchor, Dumpable, Encoding
     }
 
     /**
-     * Add param
+     * Lié les descriteurs E/S vers des stream
      * @return CMD
      */
-    public function bind($desc, $url)
+    public function linkStream($desc, $url)
     {
         if (!is_integer($desc))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a integer, '.gettype($desc).' given', E_USER_ERROR);
@@ -242,7 +242,7 @@ class CMD implements Fetchor, Dumpable, Encoding
      */
     public function fire()
     {
-        $this->process = proc_open($this->command, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
+        $this->process = proc_open((string)$this->command, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
 
         foreach($this->descriptors as $k => $descriptor) 
             if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {
