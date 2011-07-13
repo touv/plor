@@ -38,6 +38,7 @@
  */
 
 require_once 'Fetchor.php';
+require_once 'Bindor.php';
 require_once 'Dumpable.php';
 require_once 'Encoding.php';
 
@@ -66,7 +67,7 @@ function to_string(&$v)
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class PSO implements Countable, Fetchor, Dumpable, Encoding
+class PSO implements Countable, Fetchor, Bindor, Dumpable, Encoding
 {
     protected $__encoding = 'UTF-8';
 
@@ -465,7 +466,7 @@ class PSO implements Countable, Fetchor, Dumpable, Encoding
     {
         if (sizeof($this->nparameters)) {
             $r = PSO::factory()->fixEncoding($this->__encoding);
-            $segments = mb_split('(?<=[\s\w])\?', $this->content);
+            $segments = mb_split('(?<=[\s\w=])\?', $this->content);
             foreach($segments as $k => $segment) {
                 $r->concat($segment);
                 if (isset($this->nparameters[$k+1]) and !is_null($this->nparameters[$k+1])) {

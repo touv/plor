@@ -51,7 +51,7 @@ require_once 'PSOVector.php';
  * @copyright 2010 Nicolas Thouvenin
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
-class CMD implements Fetchor, Dumpable, Encoding
+class CMD implements Fetchor, Bindor, Dumpable, Encoding
 {
     protected $__encoding = 'UTF-8';
 
@@ -124,7 +124,7 @@ class CMD implements Fetchor, Dumpable, Encoding
         if (!is_null($options) and !is_array($options)) 
             throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be an array, '.gettype($options).' given', E_USER_ERROR);
 
-        $this->command = $command;
+        $this->command = PSO::factory($command);
         if (!is_null($options))
             $this->options = array_merge($this->options, $options);
         return $this;
@@ -174,6 +174,56 @@ class CMD implements Fetchor, Dumpable, Encoding
     }
 
     /**
+     * Association de paramètres
+     *
+     * @see 
+     */
+    public function bind($parameter, &$value, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        $value = escapeshellcmd($value);
+        $this->command->bind($parameter, &$value, $data_type, $length);
+        return $this;
+    }
+
+    /**
+     * Association de paramètres par valeur
+     *
+     */
+    public function bindValue($parameter, $value, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        $this->command->bindValue($parameter, escapeshellcmd($value), $data_type, $length);
+        return $this;
+    }
+
+    /**
+     * Déclaration d'une association de paramètres
+     *
+     * @param mixed $parameter
+     * @param int $data_type
+     * @param int $length
+     * @return PQO
+     */
+    public function with($parameter, $data_type = PSO::PARAM_STR, $length = null)
+    {
+        $this->command->with($parameter, $data_type, $length);
+        return $this;
+    }
+
+    /**
+     * Donne une valeur à un paramètre associé
+     *
+     * @param mixed $parameter
+     * @param mixed $data_value
+     * @return PQO
+     */
+    public function set($parameter, $value)
+    {
+        $this->command->set($parameter, escapeshellcmd($value));
+        return $this;
+    }
+
+
+    /**
      * Add option
      * @return CMD
      */
@@ -187,13 +237,13 @@ class CMD implements Fetchor, Dumpable, Encoding
             throw new ErrorException('Argument 2 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
 
         $min = strlen($name) == $this->options['short_option_size'] ? $this->options['short_option_separator'] : $this->options['long_option_separator'];
-        $this->command .= ' '.$min.$name;
+        $this->command->concat(' ',$min,$name);
         if (!is_null($value)) {
             $sep = strlen($name) == $this->options['short_option_size'] ? $this->options['short_option_operator'] : $this->options['long_option_operator'];
             if ($value == '')
-                $this->command .= $sep.'\'\'';
+                $this->command->concat($sep,'\'\'');
             else
-                $this->command .= $sep.escapeshellarg($value);
+                $this->command->concat($sep,escapeshellarg($value));
         }
         return $this;
     }
@@ -207,7 +257,7 @@ class CMD implements Fetchor, Dumpable, Encoding
         if (!to_string($value))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($value).' given', E_USER_ERROR);
 
-        $this->command .= ' '.escapeshellcmd($value);
+        $this->command->concat(' ',escapeshellcmd($value));
         return $this;
     }
 
@@ -242,7 +292,7 @@ class CMD implements Fetchor, Dumpable, Encoding
      */
     public function fire()
     {
-        $this->process = proc_open((string)$this->command, $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
+        $this->process = proc_open((string)$this->command->fire(), $this->descriptorspec, $this->pipes, $this->cwd, $this->env);
 
         foreach($this->descriptors as $k => $descriptor) 
             if (isset($this->descriptors[$k]) and isset($this->pipes[$k]) and isset($this->descriptorspec[$k])) {

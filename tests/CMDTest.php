@@ -75,4 +75,29 @@ class CMDTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($c->fetchAll()->splice()->contains('</script>'));
     }
+    function test_f()
+    {
+        $out = new PSO;
+        CMD::factory('/bin/ls --all -b --color=? --format=? -t --reverse ?')
+            ->bindValue(1, 'never')
+            ->bindValue(2, 'single-column')
+            ->bindValue(3, '/usr')
+            ->linkStream(1, $out->toURL())
+            ->fire();
+        $s = $out->toString();
+        $this->assertTrue(strpos($s, 'bin') !== false);
+    }
+    function test_g()
+    {
+        $out = new PSO;
+        CMD::factory('/bin/ls --all -b --color=:color --format=:format -t --reverse :path')
+            ->bindValue(':color', 'never')
+            ->bindValue(':format', 'single-column')
+            ->bindValue(':path', '/usr')
+            ->linkStream(1, $out->toURL())
+            ->fire();
+        $s = $out->toString();
+        $this->assertTrue(strpos($s, 'bin') !== false);
+    }
+
 }

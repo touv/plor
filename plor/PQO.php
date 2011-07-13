@@ -52,7 +52,7 @@ require_once 'PSOMap.php';
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-class PQO implements Fetchor, Encoding
+class PQO implements Fetchor, Bindor, Encoding
 {
     protected $__encoding = 'UTF-8';
     protected static $queries = array();
