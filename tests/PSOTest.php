@@ -252,4 +252,19 @@ class PSOTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($p4, 'abc');
     }
 
+    public function test_asors()
+    {
+        $s = $this->s->exchange('x123');
+        $s->asors('^[0-9]+$');
+        $this->assertTrue($s->isEmpty());
+
+        $s = $this->s->exchange('123');
+        $s->asors('^[0-9]+$');
+        $this->assertFalse($s->isEmpty());
+
+        $s = $this->s->exchange('x123');
+        $s->asors('^[0-9]+$', 10);
+
+        $this->assertEquals('10', $s->toString());
+    }
 }

@@ -30,7 +30,7 @@ function add_new_project($p, $h)
         'issues' => array(),
     );
     $h
-        ->add('Location', $p->__server->fullpath().$project_id.'.xml')
+        ->add('Location', $p->__server->fullpath.$project_id.'.xml')
         ->send(201, true);
 }
 function get_project_in_xml($p, $h)
@@ -86,7 +86,7 @@ function add_new_issue($p, $h)
         'description' => $p->description->toString(),
     );
     $h
-        ->add('Location', $p->__server->fullpath().$issue_id.'.xml')
+        ->add('Location', $p->__server->fullpath.$issue_id.'.xml')
         ->send(201, true);
 }
 function get_issue_in_xml($p, $h)
@@ -135,16 +135,15 @@ function get_issue($p, $h)
 
 function options($p, $h)
 {
-    $h->add('Allow', implode(',', $p->__methods));
+    $h->add('Allow', $p->__methods->splice(','));
     $h->add('Content-Length', '0');
     $h->add('Content-Type', 'text/plain');
     $h->send(200);
 }
 
-
 function enrich_params($p, $h)
 {
-    $p->newparam = 'Adding a new param';
+    $p->newparam = PSO::factory('Adding a new param');
 }
 
 

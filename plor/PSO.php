@@ -141,6 +141,31 @@ class PSO implements Countable, Fetchor, Bindor, Dumpable, Encoding
     }
 
 
+    /**
+     * set a PSO object with mixed value
+     * @param mixed
+     * @return mixed
+     */
+    public static function builder($v)
+     {
+         if (is_string($v)) {
+             $ret = PSO::factory($v);
+         }
+         elseif (is_array($v and is_integer(key($v)))) {
+             $ret = PSOVector::factory();
+             foreach($v as $vv) {
+                 $ret->append(self::builder($vv));
+             }
+         }
+         elseif (is_array($_REQUEST[$q] and !is_integer(key($_REQUEST[$q])))) {
+             $ret = PSOMap::factory();
+             foreach($v as $k => $vv) {
+                 $ret->set($k, self::builder($vv));
+             }
+         }
+         return $ret;
+     }
+
    /**
      * define by Countable interface
      * @return integer
@@ -256,12 +281,9 @@ class PSO implements Countable, Fetchor, Bindor, Dumpable, Encoding
      * isMatch
      * @return boolean
      */
-    public function isMatch($pattern, &$matches = null, $flags = 0 , $offset = 0)
+    public function isMatch($pattern, $option = "msr")
     {
-        $m = array();
-        $b = preg_match($pattern, $this->content, $m, $flags, $offset);
-        if (!is_null($matches)) $matches = $m;
-        return (boolean)$b;
+        return (boolean) mb_ereg_match($pattern , $this->content, $option);
     }
 
     /**
@@ -291,6 +313,17 @@ class PSO implements Countable, Fetchor, Bindor, Dumpable, Encoding
     public function slice($start, $length = null)
     {
         $this->content = mb_substr($this->content, $start, $length, $this->__encoding);
+        return $this;
+    }
+
+    /**
+     * ASsert OR Substitue
+     * @return boolean
+     */
+    public function asors($pattern, $substitue = '', $option = 'msr')
+    {
+        if (!mb_ereg_match($pattern, $this->content, $option))
+            $this->exchange((string)$substitue);
         return $this;
     }
 

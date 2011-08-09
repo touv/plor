@@ -39,7 +39,7 @@
 
 require_once 'PSO.php';
 require_once 'PSOVector.php';
-require_once 'PRSParameters.php';
+require_once 'PSOMap.php';
 
 /**
  * A REST Url
@@ -57,7 +57,7 @@ class PRSUrl
     protected $callbacks = array();
     protected $sections;
     protected $constants = array();
-    protected $methods = array();
+    protected $methods;
     protected $input;
     protected $hook_parameters;
 
@@ -92,6 +92,7 @@ class PRSUrl
         if (!to_string($content))
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a string, '.gettype($content).' given', E_USER_ERROR);
         $this->rules = self::compile($content);
+        $this->methods = PSOVector::factory();
         return $this;
     }
 
@@ -156,7 +157,7 @@ class PRSUrl
             throw new ErrorException('Argument 3 passed to '.__METHOD__.' must be a array, '.gettype($params).' given', E_USER_ERROR);
 
         $this->callbacks[] = array($method, $callback, $params);
-        $this->methods[] = $method;
+        $this->methods->append(PSO::factory($method));
         return $this;
     }
 
@@ -214,7 +215,6 @@ class PRSUrl
         }
         return true;
     }
-
     /**
      * Applique l'URL sur le contexte courant
      *
@@ -225,21 +225,45 @@ class PRSUrl
         if (is_null($this->input)) return false;
         $ret = false;
         $method = $this->input->method();
-        $parameters = PRSParameters::factory();
+        $parameters = PSOMap::factory();
         foreach($this->constants as $constant => $value) {
             $parameters->set($constant, PSO::factory($value));
         }
         $parameters->__sections = $this->sections;
-        $parameters->__server   = $this->input;
-        $parameters->__method   = $this->input->method();
         $parameters->__methods  = $this->methods;
+        $parameters->__server   = PSOMap::factory();
+        $parameters->__server->set('method', PSO::factory($this->input->method()));
+        $parameters->__server->set('host', PSO::factory($this->input->host()));
+        $parameters->__server->set('uri', PSO::factory($this->input->uri())); 
+        $parameters->__server->set('path', PSO::factory($this->input->path())); 
+        $parameters->__server->set('fullpath', PSO::factory($this->input->fullpath())); 
 
         $stream = null;
         if (sizeof($this->callbacks)) {
             foreach($this->callbacks as $binding) {
                 if (isset($binding[2]) and ($binding[0] === $method or $binding[0] === '*')) {
                     $ret = true;
-                    $parameters->exchange($binding[2]);
+                    // {{{ REQUEST to PSOMap 
+                    foreach($binding[2] as $p) {
+                        if (is_array($p)) {
+                            $name = null;
+                            foreach($p as $q) if (is_string($q)) {
+                                if (is_null($name))
+                                    $name = $q;
+                                if (isset($_REQUEST[$q])) {
+                                    $parameters->set($name, PSO::builder($_REQUEST[$q]));
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            $name = $p;
+                            if (isset($_REQUEST[$p])) {
+                                $parameters->set($name, PSO::builder($_REQUEST[$p]));
+                            }
+                        }
+                    }
+                    // }}}
                     $stream = call_user_func($binding[1], $parameters, $headers, $stream);
                 }
                 elseif (!isset($binding[2]) and (isset($parameters->$binding[0]) or $binding[0] === '*')) {

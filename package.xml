@@ -14,8 +14,8 @@
 	</lead>
 	<date>2011-07-13</date>
 	<version>
-		<release>3.3.2</release>
-		<api>3.3.0</api>
+		<release>4.0.0</release>
+		<api>4.0.0</api>
 	</version>
 	<stability>
 		<release>stable</release>
@@ -23,7 +23,7 @@
 	</stability>
 	<license uri="http://opensource.org/licenses/bsd-license.php">BSD Licence</license>
 	<notes>
-        bindor
+        fin de prsparameter
 	</notes>
 	<contents>
 		<dir name="/">
@@ -38,7 +38,6 @@
                 <file name="PQO.php" role="php" />
                 <file name="PRSHeaders.php" role="php" />
                 <file name="PRSInput.php" role="php" />
-                <file name="PRSParameters.php" role="php" />
                 <file name="PRS.php" role="php" />
                 <file name="PRSUrl.php" role="php" />
                 <file name="PSO.php" role="php" />
