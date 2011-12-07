@@ -267,4 +267,119 @@ class PSOTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('10', $s->toString());
     }
+    public function test_tojson()
+    {
+        $this->assertNotNull(json_decode($this->s->exchange('éäè')->toJson()));
+        $this->assertNotNull(json_decode($this->s->exchange('\'')->toJson()));
+        $this->assertNotNull(json_decode($this->s->exchange('\n\r')->toJson()));
+        $this->assertNotNull(json_decode($this->s->exchange('\\')->toJson()));
+    }
+
+    public function test_builder()
+    {
+        $src = '{"ok":true,"id":"_design/render","rev":"1-2041852709"}';
+        $out = PSO::builder(json_decode($src, true));
+
+       $this->assertEquals('1', $out->ok->toString());
+       $this->assertEquals('_design/render', $out->id->toString());
+       $this->assertEquals('1-2041852709', $out->rev->toString());
+    }
+
+    public function test_fromXML()
+    {
+        $src = '<PERSON>
+            <NAME>John</NAME>
+            <PHONE type="home">555-555-555</PHONE>
+            </PERSON>';
+        $out = PSO::fromXML($src);
+        $this->assertEquals('John', $out->PERSON->NAME->_text->toString());
+        $this->assertEquals('home', $out->PERSON->PHONE->type->toString());
+        $this->assertEquals('555-555-555', $out->PERSON->PHONE->_text->toString());
+        $src = '<authors>
+            <author>
+            <name>toto</name>
+            <email>toto@example.com</email>
+            </author>
+            <author>
+            <name>tata</name>
+            <email>tata@example.com</email>
+            </author>
+            </authors>';
+        $out = PSO::fromXML($src);
+        $this->assertEquals('toto', $out->authors->author[0]->name->_text->toString());
+        $this->assertEquals('toto@example.com', $out->authors->author[0]->email->_text->toString());
+        $this->assertEquals('tata', $out->authors->author[1]->name->_text->toString());
+        $this->assertEquals('tata@example.com', $out->authors->author[1]->email->_text->toString());
+
+        $src = '<test>
+            <info check="ok" />
+            <note>X</note>
+            </test>';
+        $out = PSO::fromXML($src);
+        $this->assertEquals('ok', $out->test->info->check->toString());
+        $this->assertEquals('X', $out->test->note->_text->toString());
+
+
+        $src = '<?xml version="1.0" encoding="UTF-8" ?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+    xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/"
+    xmlns:gd="http://schemas.google.com/g/2005"
+    xmlns:gCal="http://schemas.google.com/gCal/2005">
+  <id>...</id>
+  <updated>2006-11-12T21:25:30.000Z</updated>
+  <title type="text">Google Developer Events</title>
+  <subtitle type="text">The calendar contains information about upcoming
+    developer conferences at which Google will be speaking, along with
+    other developer-related events.</subtitle>
+  <link rel="http://schemas.google.com/g/2005#feed"
+    type="application/atom+xml" href="..." />
+  <link rel="self" type="application/atom+xml" href="..." />
+  <author>
+    <name>Google Developer Calendar</name>
+    <email>developer-calendar@google.com</email>
+  </author>
+  <generator version="1.0"
+    uri="http://www.google.com/calendar">Google Calendar</generator>
+  <openSearch:startIndex>1</openSearch:startIndex>
+  <openSearch:itemsPerPage>25</openSearch:itemsPerPage>
+  <gCal:timezone value="America/Los_Angeles" />
+    
+  <entry>
+    <id>...</id>
+    <published>2006-11-12T21:25:30.000Z</published>
+    <updated>2006-11-12T21:25:30.000Z</updated>
+    <category scheme="..." term="..." />
+    <title type="text">WebmasterWorld PubCon 2006:
+      Google Developer Tools in General</title>
+    <content type="text">Google is sponsoring at 
+      <a href="http://www.pubcon.com/">WebmasterWorld PubCon 2006</a>. Come and
+      visit us at the booth or join us for an evening demo reception where we
+      will be talking "5 ways to enhance your website with Google Code". 
+      After all, it is Vegas, baby! See you soon.</content>
+    <link rel="alternate" type="text/html" href="..." title="alternate" />
+    <link rel="self" type="application/atom+xml" href="..." />
+    <author>
+      <name>Google Developer Calendar</name>
+      <email>developer-calendar@google.com</email>
+    </author>
+    <gCal:sendEventNotifications value="true" />
+    <gd:comments>
+       <gd:feedLink href="..." />
+    </gd:comments>
+    <gd:transparency value="..." />
+    <gd:eventStatus value="..." />
+    <gd:where valueString="3150 Paradise Road, Las Vegas, NV 89109" />
+    <gd:when startTime="2006-11-15" endTime="2006-11-17">
+      <gd:reminder minutes="10" />
+    </gd:when>
+  </entry>
+  <entry>
+  <id>...</id>
+  </entry>
+  <!-- etc. -->
+</feed>
+';
+        $out = PSO::fromXML($src);
+        echo $out->toJson();
+    }
 }

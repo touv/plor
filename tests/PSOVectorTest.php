@@ -64,5 +64,21 @@ class PSOVectorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals((string)$d, 'A');
     }
 
+
+    function test_toJson()
+    {
+
+        $i = PSOVector::factory()
+            ->append(new PSO('A'))
+            ->append(new PSO('B'));
+
+        $a = json_decode($i->toJson());
+        $this->assertNotNull($a);
+        $this->assertEquals('A', $a[0]);
+        $this->assertEquals('B', $a[1]);
+    }
+
+
+
 }
 

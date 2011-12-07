@@ -52,7 +52,7 @@ require_once 'PSOMap.php';
  * @license   http://opensource.org/licenses/bsd-license.php BSD Licence
  */
 
-class PQO implements Fetchor, Bindor, Encoding
+class PQO implements Fetchor, Encoding
 {
     protected $__encoding = 'UTF-8';
     protected static $queries = array();
@@ -60,6 +60,7 @@ class PQO implements Fetchor, Bindor, Encoding
     private $statement;
     private $query;
     private $parameters = array();
+    private $parameters_type = array();
     private $executed = false;
 
     /**
@@ -82,7 +83,7 @@ class PQO implements Fetchor, Bindor, Encoding
      */
     public static function factory(PDO $pdo, $query)
     {
-        return new PSO($pdo, $query);
+        return new PDO($pdo, $query);
     }
 
     /**
@@ -182,6 +183,7 @@ class PQO implements Fetchor, Bindor, Encoding
     public function with($parameter, $data_type = PDO::PARAM_STR, $length = null)
     {
         $this->parameters[$parameter] = null;
+        $this->parameters_type[$parameter] = $data_type;
         $this->statement->bindParam($parameter, $this->parameters[$parameter], $data_type, $length);
         return $this;
     }
@@ -193,9 +195,18 @@ class PQO implements Fetchor, Bindor, Encoding
      * @param mixed $data_value
      * @return PQO
      */
-    public function set($parameter, $data_value)
+    public function set($parameter, $value)
     {
-        $this->parameters[$parameter] = $data_value;
+        if ($value instanceof PSO) {
+            if ($this->parameters_type[$parameter] === PDO::PARAM_INT or $this->parameters_type[$parameter] === PDO::PARAM_BOOL) {
+                settype($value, 'string');
+                settype($value, 'integer');
+            }
+            else {
+                settype($value, 'string');
+            }
+        }
+        $this->parameters[$parameter] = $value;
         return $this;
     }
 

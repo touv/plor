@@ -94,6 +94,22 @@ class PSOMapTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($i->splice()->isEqual('13'));
     }
 
+    function test_toJson()
+    {
+        $i = PSOMap::factory()
+            ->set('a', new PSO('1'))
+            ->set('b', new PSO('2'))
+            ->set('c', new PSO('3'))
+            ->set('d', new PSO('4'));
+        $a = json_decode($i->toJson(), true);
+        $this->assertNotNull($a);
+        $this->assertEquals(1, $a['a']);
+        $this->assertEquals(2, $a['b']);
+        $this->assertEquals(3, $a['c']);
+        $this->assertEquals(4, $a['d']);
+    }
+
+
 
 }
 

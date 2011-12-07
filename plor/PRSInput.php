@@ -129,6 +129,7 @@ class PRSInput
         $path = false !== ($q = strpos($uriAll, '?')) ? substr($uriAll, 0, $q) : $uriAll;
         if (!empty($_SERVER['REQUEST_BASE']))
             $path = preg_replace('/^'.preg_quote($_SERVER['REQUEST_BASE'], '/').'/',  '', $path);
+        $path = urldecode($path);
         return $path;
     }
 

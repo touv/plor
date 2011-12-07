@@ -141,7 +141,7 @@ class PSOMap implements Countable, Fetchor, Dumpable, Encoding
         if (! $value instanceof PSO and ! $value instanceof PSOVector and ! $value instanceof PSOMap) {
             throw new ErrorException('Argument 1 passed to '.__METHOD__.' must be a instance of PSO, PSOVector or PSOMap, '.gettype($value).' given', E_USER_ERROR);
         }
-        $key = preg_replace('/^([0-9])/', '_\\1', preg_replace('/[^A-Za-z0-9_]/', '_', $key));
+        $key = preg_replace('/^([0-9])/', '_\\1', trim(preg_replace('/[^A-Za-z0-9_]/', '_', $key), '_'));
         $this->content[$key] = $value;
         return $this;
     }
